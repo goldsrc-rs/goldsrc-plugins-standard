@@ -35,6 +35,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "coreutils"
+version = "0.20.0"
+dependencies = [
+ "goldsrc",
+ "goldsrc-api",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "crossbeam-channel"
 version = "0.5.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
