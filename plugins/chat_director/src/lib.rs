@@ -10,8 +10,6 @@ pub mod rotator;
 
 use antiflood::AntifloodService;
 use config::ChatDirectorConfig;
-#[allow(unused_imports)]
-use goldsrc::api::bindings::goldsrc::engine::api as host_api;
 use goldsrc::prelude::*;
 use goldsrc_api::timer::host_time;
 use rotator::BroadcastRotator;
@@ -154,23 +152,14 @@ impl ChatDirector {
 
             // 2. Broadcast banner via Director HUD
             if enable_dhud {
-                #[cfg(target_arch = "wasm32")]
-                {
-                    host_api::host_send_dhud_message(
-                        -1, // Broadcast to all
-                        0.05,
-                        0.02, // Top-left position
-                        0,
-                        255,
-                        200,
-                        255, // Cyan color
-                        0,   // Effect
-                        0.5,
-                        0.5,
-                        5.0, // FadeIn, FadeOut, HoldTime
-                        &announcement,
-                    );
-                }
+                hud_broadcast(
+                    &HudMessage::builder(&announcement)
+                        .dhud()
+                        .position(0.05, 0.02)
+                        .rgb(0, 255, 200)
+                        .timing(0.5, 0.5, 5.0)
+                        .build(),
+                );
             }
         }
     }
@@ -192,14 +181,14 @@ impl ChatDirector {
         let banner = format!("[ОБЪЯВЛЕНИЕ] {message}");
         chat_broadcast!(&banner);
 
-        #[cfg(target_arch = "wasm32")]
-        {
-            host_api::host_send_dhud_message(
-                -1, -1.0, 0.20, // Center-top
-                255, 180, 0, 255, // Gold
-                0, 0.2, 0.5, 6.0, &banner,
-            );
-        }
+        hud_broadcast(
+            &HudMessage::builder(&banner)
+                .dhud()
+                .position(-1.0, 0.20)
+                .rgb(255, 180, 0)
+                .timing(0.2, 0.5, 6.0)
+                .build(),
+        );
 
         log_info!(
             "[Chat Director] Dispatched broadcast announcement: {}",

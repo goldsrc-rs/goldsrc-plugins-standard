@@ -1,8 +1,6 @@
 //! Staff RBAC model and staff registry persistence.
 
 use crate::error::AdministrationError;
-#[allow(unused_imports)]
-use goldsrc::api::bindings::goldsrc::engine::api as host_api;
 use serde::{Deserialize, Serialize};
 
 #[allow(dead_code)]
@@ -72,26 +70,20 @@ impl StaffRegistry {
     }
 
     pub fn load(&mut self) {
-        #[cfg(target_arch = "wasm32")]
+        if let Some(bytes) = goldsrc::storage::get(STAFF_BUCKET, STAFF_KEY)
+            && let Ok(members) = serde_json::from_slice::<Vec<StaffMember>>(&bytes)
         {
-            if let Some(bytes) = host_api::host_storage_get(STAFF_BUCKET, STAFF_KEY) {
-                if let Ok(members) = serde_json::from_slice::<Vec<StaffMember>>(&bytes) {
-                    self.members = members;
-                }
-            }
+            self.members = members;
         }
     }
 
     pub fn save(&self) -> Result<(), AdministrationError> {
-        #[cfg(target_arch = "wasm32")]
-        {
-            let data = serde_json::to_vec(&self.members)
-                .map_err(|e| AdministrationError::Storage(e.to_string()))?;
-            if !host_api::host_storage_set(STAFF_BUCKET, STAFF_KEY, &data) {
-                return Err(AdministrationError::Storage(
-                    "host_storage_set rejected by host sandbox policy".to_string(),
-                ));
-            }
+        let data = serde_json::to_vec(&self.members)
+            .map_err(|e| AdministrationError::Storage(e.to_string()))?;
+        if !goldsrc::storage::set(STAFF_BUCKET, STAFF_KEY, &data) {
+            return Err(AdministrationError::Storage(
+                "storage_set rejected by host sandbox policy".to_string(),
+            ));
         }
         Ok(())
     }

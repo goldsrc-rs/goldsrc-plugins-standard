@@ -9,8 +9,6 @@
 
 use crate::error::ModerationError;
 use crate::record::ModerationRecord;
-#[allow(unused_imports)]
-use goldsrc::api::bindings::goldsrc::engine::api as host_api;
 use std::collections::HashMap;
 
 #[allow(dead_code)]
@@ -35,32 +33,26 @@ impl ModerationRepository {
 
     /// Loads persisted sanctions from the host storage sandbox.
     pub fn load_from_storage(&mut self) {
-        #[cfg(target_arch = "wasm32")]
+        if let Some(bytes) = goldsrc::storage::get(STORAGE_BUCKET, RECORDS_KEY)
+            && let Ok(records) = serde_json::from_slice::<Vec<ModerationRecord>>(&bytes)
         {
-            if let Some(bytes) = host_api::host_storage_get(STORAGE_BUCKET, RECORDS_KEY) {
-                if let Ok(records) = serde_json::from_slice::<Vec<ModerationRecord>>(&bytes) {
-                    self.records = records;
-                    goldsrc::log_info!(
-                        "[Moderation] Loaded {} persistent sanctions from storage",
-                        self.records.len()
-                    );
-                }
-            }
+            self.records = records;
+            goldsrc::log_info!(
+                "[Moderation] Loaded {} persistent sanctions from storage",
+                self.records.len()
+            );
         }
     }
 
     /// Flushes records to host storage.
     pub fn save_to_storage(&self) -> Result<(), ModerationError> {
-        #[cfg(target_arch = "wasm32")]
-        {
-            let data = serde_json::to_vec(&self.records)
-                .map_err(|e| ModerationError::Storage(e.to_string()))?;
-            let success = host_api::host_storage_set(STORAGE_BUCKET, RECORDS_KEY, &data);
-            if !success {
-                return Err(ModerationError::Storage(
-                    "host_storage_set rejected by host sandbox policy".to_string(),
-                ));
-            }
+        let data = serde_json::to_vec(&self.records)
+            .map_err(|e| ModerationError::Storage(e.to_string()))?;
+        let success = goldsrc::storage::set(STORAGE_BUCKET, RECORDS_KEY, &data);
+        if !success {
+            return Err(ModerationError::Storage(
+                "storage_set rejected by host sandbox policy".to_string(),
+            ));
         }
         Ok(())
     }

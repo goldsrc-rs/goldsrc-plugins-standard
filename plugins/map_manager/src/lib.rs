@@ -12,8 +12,6 @@ pub mod vote;
 use config::MapManagerConfig;
 #[allow(unused_imports)]
 use error::MapManagerError;
-#[allow(unused_imports)]
-use goldsrc::api::bindings::goldsrc::engine::api as host_api;
 use goldsrc::prelude::*;
 use goldsrc_api::timer::host_time;
 use menu::*;
@@ -120,23 +118,14 @@ impl MapManager {
                 "[Map Manager] Голосование завершено! Следующая карта: {winner}"
             ));
 
-            #[cfg(target_arch = "wasm32")]
-            {
-                host_api::host_send_dhud_message(
-                    -1,
-                    -1.0,
-                    0.35, // Center
-                    0,
-                    255,
-                    120,
-                    255, // Green
-                    0,
-                    0.2,
-                    0.5,
-                    7.0,
-                    &format!("Следующая карта: {winner}"),
-                );
-            }
+            hud_broadcast(
+                &HudMessage::builder(format!("Следующая карта: {winner}"))
+                    .dhud()
+                    .position(-1.0, 0.35)
+                    .rgb(0, 255, 120)
+                    .timing(0.2, 0.5, 7.0)
+                    .build(),
+            );
 
             if let Ok(mut lock) = TRACKER.write()
                 && let Some(tracker) = lock.as_mut()
