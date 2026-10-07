@@ -8,6 +8,34 @@ pub mod vfs;
 
 use goldsrc::prelude::*;
 
+/// Tokenizes command line arguments respecting double quotes.
+fn parse_shell_args(input: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut current = String::new();
+    let mut in_quotes = false;
+
+    for ch in input.chars() {
+        match ch {
+            '"' => {
+                in_quotes = !in_quotes;
+            }
+            c if c.is_whitespace() && !in_quotes => {
+                if !current.is_empty() {
+                    args.push(current.clone());
+                    current.clear();
+                }
+            }
+            c => {
+                current.push(c);
+            }
+        }
+    }
+    if !current.is_empty() {
+        args.push(current);
+    }
+    args
+}
+
 pub struct Coreutils;
 
 #[plugin(
@@ -16,7 +44,7 @@ pub struct Coreutils;
     bundle = "server",
     version = "0.20.0",
     author = "GoldSrc.rs Team",
-    description = "Canonical POSIX server utilities suite (grep, cat, tail, head, wc, sha256sum)",
+    description = "Canonical POSIX server utilities suite (grep, cat, tail, head, wc, sha256sum, ls)",
     url = "https://github.com/goldsrc-rs/goldsrc-plugins-standard"
 )]
 impl Coreutils {
@@ -31,7 +59,7 @@ impl Coreutils {
         usage = "grep [-r|-rn|-i] <pattern> [file...] [--include=<pattern>]"
     )]
     fn cmd_grep(args: String) {
-        let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
+        let raw_args = parse_shell_args(&args);
         match applets::run_grep(&raw_args) {
             Ok(output) => {
                 Player::new(0).print_console(output);
@@ -43,10 +71,10 @@ impl Coreutils {
     #[command(
         name = "cat",
         description = "Concatenate and print file contents",
-        usage = "cat <file>"
+        usage = "cat [-n] <file>"
     )]
     fn cmd_cat(args: String) {
-        let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
+        let raw_args = parse_shell_args(&args);
         match applets::run_cat(&raw_args) {
             Ok(output) => {
                 Player::new(0).print_console(output);
@@ -61,7 +89,7 @@ impl Coreutils {
         usage = "head [-n <lines>] <file>"
     )]
     fn cmd_head(args: String) {
-        let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
+        let raw_args = parse_shell_args(&args);
         match applets::run_head(&raw_args) {
             Ok(output) => {
                 Player::new(0).print_console(output);
@@ -76,7 +104,7 @@ impl Coreutils {
         usage = "tail [-n <lines>] <file>"
     )]
     fn cmd_tail(args: String) {
-        let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
+        let raw_args = parse_shell_args(&args);
         match applets::run_tail(&raw_args) {
             Ok(output) => {
                 Player::new(0).print_console(output);
@@ -91,7 +119,7 @@ impl Coreutils {
         usage = "wc [-l] <file>"
     )]
     fn cmd_wc(args: String) {
-        let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
+        let raw_args = parse_shell_args(&args);
         match applets::run_wc(&raw_args) {
             Ok(output) => Player::new(0).print_console(format!("{output}\n")),
             Err(err) => Player::new(0).print_console(format!("wc: {err}\n")),
@@ -104,10 +132,23 @@ impl Coreutils {
         usage = "sha256sum <file>"
     )]
     fn cmd_sha256sum(args: String) {
-        let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
+        let raw_args = parse_shell_args(&args);
         match applets::run_sha256sum(&raw_args) {
             Ok(output) => Player::new(0).print_console(format!("{output}\n")),
             Err(err) => Player::new(0).print_console(format!("sha256sum: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "ls",
+        description = "List directory contents",
+        usage = "ls [-la] [dir]"
+    )]
+    fn cmd_ls(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_ls(&raw_args) {
+            Ok(output) => Player::new(0).print_console(output),
+            Err(err) => Player::new(0).print_console(format!("ls: {err}\n")),
         }
     }
 }

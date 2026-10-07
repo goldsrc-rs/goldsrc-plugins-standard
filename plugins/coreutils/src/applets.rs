@@ -101,10 +101,32 @@ pub fn run_grep(args: &[String]) -> Result<String, String> {
 /// POSIX cat runner.
 pub fn run_cat(args: &[String]) -> Result<String, String> {
     if args.is_empty() {
-        return Err("Usage: cat <file>".to_string());
+        return Err("Usage: cat [-n] <file>".to_string());
     }
-    let file = &args[0];
-    SafeVfs::read_to_string(file)
+
+    let mut show_lines = false;
+    let mut file: Option<&str> = None;
+
+    for arg in args {
+        if arg == "-n" {
+            show_lines = true;
+        } else if file.is_none() {
+            file = Some(arg);
+        }
+    }
+
+    let target = file.ok_or_else(|| "cat: missing file argument".to_string())?;
+    let content = SafeVfs::read_to_string(target)?;
+
+    if show_lines {
+        let mut out = String::new();
+        for (idx, line) in content.lines().enumerate() {
+            out.push_str(&format!("{:6}\t{}\n", idx + 1, line));
+        }
+        Ok(out)
+    } else {
+        Ok(content)
+    }
 }
 
 /// POSIX head runner.
@@ -163,7 +185,10 @@ pub fn run_wc(args: &[String]) -> Result<String, String> {
     if args.is_empty() {
         return Err("Usage: wc [-l] <file>".to_string());
     }
-    let file = args.last().unwrap();
+    let file = args
+        .iter()
+        .find(|a| !a.starts_with('-'))
+        .ok_or_else(|| "wc: missing file argument".to_string())?;
     let content = SafeVfs::read_to_string(file)?;
 
     let lines = content.lines().count();
@@ -182,7 +207,10 @@ pub fn run_sha256sum(args: &[String]) -> Result<String, String> {
     if args.is_empty() {
         return Err("Usage: sha256sum <file>".to_string());
     }
-    let file = &args[0];
+    let file = args
+        .iter()
+        .find(|a| !a.starts_with('-'))
+        .ok_or_else(|| "sha256sum: missing file argument".to_string())?;
     let bytes = SafeVfs::read_bytes(file)?;
 
     // Lightweight portable SHA-256 computation
@@ -279,4 +307,58 @@ fn simple_sha256(data: &[u8]) -> String {
     }
 
     h.iter().map(|val| format!("{:08x}", val)).collect()
+}
+
+/// POSIX ls runner.
+pub fn run_ls(args: &[String]) -> Result<String, String> {
+    let mut show_all = false;
+    let mut long_format = false;
+    let mut dir: Option<&str> = None;
+
+    for arg in args {
+        if arg.starts_with('-') {
+            if arg.contains('a') {
+                show_all = true;
+            }
+            if arg.contains('l') {
+                long_format = true;
+            }
+        } else if dir.is_none() {
+            dir = Some(arg);
+        }
+    }
+
+    let target_str = dir.unwrap_or(".");
+    let target_path = if target_str == "." {
+        crate::vfs::SafeVfs::resolve_path("configs").and_then(|p| p.parent().map(|p| p.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."))
+    } else {
+        crate::vfs::SafeVfs::resolve_path(target_str)
+            .ok_or_else(|| format!("Directory not found: {target_str}"))?
+    };
+
+    let entries = std::fs::read_dir(&target_path)
+        .map_err(|e| format!("Failed to read directory '{target_str}': {e}"))?;
+
+    let mut names = Vec::new();
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !show_all && name.starts_with('.') {
+            continue;
+        }
+
+        if long_format {
+            let metadata = entry.metadata().ok();
+            let is_dir = metadata.as_ref().map(|m| m.is_dir()).unwrap_or(false);
+            let size = metadata.as_ref().map(|m| m.len()).unwrap_or(0);
+            let kind = if is_dir { "d" } else { "-" };
+            names.push(format!("{kind}rwxr-xr-x {:8} {}", size, name));
+        } else {
+            names.push(name);
+        }
+    }
+
+    names.sort();
+    let mut out = names.join(if long_format { "\n" } else { "  " });
+    out.push('\n');
+    Ok(out)
 }
