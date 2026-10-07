@@ -533,52 +533,52 @@ impl Moderation {
 
     // --- Interactive Menu Action Handlers ---
 
-    #[menu_action(id = 1001)]
+    #[menu_action("mod:action:slap")]
     fn on_menu_slap(player: &mut Player) {
         let menu = build_target_selection_menu("Slap (Толчок)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1002)]
+    #[menu_action("mod:action:slay")]
     fn on_menu_slay(player: &mut Player) {
         let menu = build_target_selection_menu("Slay (Уничтожение)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1003)]
+    #[menu_action("mod:action:freeze")]
     fn on_menu_freeze(player: &mut Player) {
         let menu = build_target_selection_menu("Freeze (Заморозка)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1004)]
+    #[menu_action("mod:action:gag")]
     fn on_menu_gag(player: &mut Player) {
         let menu = build_target_selection_menu("Gag (Блок чата)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1005)]
+    #[menu_action("mod:action:mute")]
     fn on_menu_mute(player: &mut Player) {
         player.print_chat(
             "[Moderation STUB] Voice Mute недоступен: отсутствует SetClientListening в host WIT.",
         );
     }
 
-    #[menu_action(id = 1006)]
+    #[menu_action("mod:action:kick")]
     fn on_menu_kick(player: &mut Player) {
         player.print_chat(
             "[Moderation STUB] Kick недоступен: отсутствует host-disconnect-client в host WIT.",
         );
     }
 
-    #[menu_action(id = 1007)]
+    #[menu_action("mod:action:ban")]
     fn on_menu_ban(player: &mut Player) {
         player.print_chat(
             "[Moderation STUB] Ban недоступен: отсутствует получение SteamID/IP в host WIT.",
         );
     }
 
-    #[menu_action(id = 1008)]
+    #[menu_action("mod:action:inspect")]
     fn on_menu_inspect(player: &mut Player) {
         let menu = build_target_selection_menu("Inspect (Инспекция)");
         player.open_menu(&menu);

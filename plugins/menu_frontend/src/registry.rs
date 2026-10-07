@@ -5,7 +5,7 @@ use goldsrc::prelude::*;
 /// A registered sub-menu section contributed by another plugin.
 #[derive(Debug, Clone)]
 pub struct RegisteredMenuSection {
-    pub id: u32,
+    pub action: String,
     pub title: String,
     pub command: String,
     pub capability: Option<String>,
@@ -22,25 +22,25 @@ impl MenuRegistry {
         let mut reg = Self::default();
         // Register standard canonical sections
         reg.register(RegisteredMenuSection {
-            id: 5001,
+            action: "menu:frontend:admin".to_string(),
             title: "Управление сервером (Админ-меню)".to_string(),
             command: "grs_adminmenu".to_string(),
             capability: Some("admin:engine".to_string()),
         });
         reg.register(RegisteredMenuSection {
-            id: 5002,
+            action: "menu:frontend:mod".to_string(),
             title: "Модерация и дисциплина (Мод-меню)".to_string(),
             command: "grs_modmenu".to_string(),
             capability: Some("moderation:inspect".to_string()),
         });
         reg.register(RegisteredMenuSection {
-            id: 5003,
+            action: "menu:frontend:vip".to_string(),
             title: "Меню VIP привилегий".to_string(),
             command: "grs_privmenu".to_string(),
             capability: Some("vip.access".to_string()),
         });
         reg.register(RegisteredMenuSection {
-            id: 5004,
+            action: "menu:frontend:maps".to_string(),
             title: "Номинации и ротация карт".to_string(),
             command: "say /maps".to_string(),
             capability: None, // Public
@@ -49,7 +49,7 @@ impl MenuRegistry {
     }
 
     pub fn register(&mut self, section: RegisteredMenuSection) {
-        self.sections.retain(|s| s.id != section.id);
+        self.sections.retain(|s| s.action != section.action);
         self.sections.push(section);
     }
 
@@ -63,7 +63,7 @@ impl MenuRegistry {
             .collect()
     }
 
-    pub fn find_by_id(&self, id: u32) -> Option<&RegisteredMenuSection> {
-        self.sections.iter().find(|s| s.id == id)
+    pub fn find_by_action(&self, action: &str) -> Option<&RegisteredMenuSection> {
+        self.sections.iter().find(|s| s.action == action)
     }
 }

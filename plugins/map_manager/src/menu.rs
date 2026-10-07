@@ -2,8 +2,6 @@
 
 use goldsrc::prelude::*;
 
-pub const ACTION_VOTE_BASE: u32 = 6000; // 6000 + option_idx
-
 /// Builds the interactive map voting ballot menu localized for the specified language.
 pub fn build_vote_menu_localized(options: &[String], lang: &str) -> Menu {
     let title = tr!("map_manager", lang, "menus.vote_title");
@@ -11,7 +9,8 @@ pub fn build_vote_menu_localized(options: &[String], lang: &str) -> Menu {
 
     for (idx, map) in options.iter().enumerate() {
         let label = format!("{}. {}", idx + 1, map);
-        builder = builder.item(MenuItem::new(label, ACTION_VOTE_BASE + idx as u32));
+        let action_name = format!("map:vote:{idx}");
+        builder = builder.item(MenuItem::action(label, action_name));
     }
 
     builder.build()
@@ -29,7 +28,8 @@ pub fn build_nomination_menu_localized(maps: &[String], lang: &str) -> Menu {
 
     for (idx, map) in maps.iter().take(8).enumerate() {
         let label = format!("{}. {}", idx + 1, map);
-        builder = builder.item(MenuItem::new(label, ACTION_VOTE_BASE + 100 + idx as u32));
+        let action_name = format!("map:nominate:{idx}");
+        builder = builder.item(MenuItem::action(label, action_name));
     }
 
     builder.build()

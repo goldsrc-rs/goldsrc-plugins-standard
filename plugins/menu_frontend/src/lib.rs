@@ -80,11 +80,11 @@ impl MenuFrontend {
         let mut builder = Menu::builder(title).style(MenuStyle::brackets());
 
         if sections.is_empty() {
-            builder = builder.item(MenuItem::new("Нет доступных разделов", 0));
+            builder = builder.item(MenuItem::text("Нет доступных разделов"));
         } else {
             for (idx, section) in sections.iter().enumerate() {
                 let item_label = format!("{}. {}", idx + 1, section.title);
-                builder = builder.item(MenuItem::new(item_label, section.id).keep_open());
+                builder = builder.item(MenuItem::action(item_label, &section.action).keep_open());
             }
         }
 
@@ -119,21 +119,21 @@ impl MenuFrontend {
         name = "grs_menu_add",
         capability = "admin:engine",
         description = "Registers a new section in the server main menu",
-        usage = "grs_menu_add <id> <title> <command> [capability]"
+        usage = "grs_menu_add <action> <title> <command> [capability]"
     )]
-    fn cmd_menu_add(id: u32, title: String, command: String, capability: Option<String>) {
+    fn cmd_menu_add(action: String, title: String, command: String, capability: Option<String>) {
         if let Ok(mut lock) = REGISTRY.write()
             && let Some(reg) = lock.as_mut()
         {
             reg.register(RegisteredMenuSection {
-                id,
+                action: action.clone(),
                 title: title.clone(),
                 command,
                 capability,
             });
             log_info!(
-                "[Menu Frontend] Registered new menu section #{} ('{}')",
-                id,
+                "[Menu Frontend] Registered new menu section '{}' ('{}')",
+                action,
                 title
             );
         }
@@ -157,22 +157,22 @@ impl MenuFrontend {
 
     // --- Menu Action Handlers ---
 
-    #[menu_action(id = 5001)]
+    #[menu_action("menu:frontend:admin")]
     fn on_menu_admin(player: &mut Player) {
         player.print_notify("[Menu] Переход в панель управления сервером: grs_adminmenu");
     }
 
-    #[menu_action(id = 5002)]
+    #[menu_action("menu:frontend:mod")]
     fn on_menu_mod(player: &mut Player) {
         player.print_notify("[Menu] Переход в панель модерации: grs_modmenu");
     }
 
-    #[menu_action(id = 5003)]
+    #[menu_action("menu:frontend:vip")]
     fn on_menu_vip(player: &mut Player) {
         player.print_notify("[Menu] Переход в меню VIP привилегий: grs_privmenu");
     }
 
-    #[menu_action(id = 5004)]
+    #[menu_action("menu:frontend:maps")]
     fn on_menu_maps(player: &mut Player) {
         player.print_notify("[Menu] Переход в меню ротации карт: say /maps");
     }
@@ -196,11 +196,11 @@ mod tests {
     #[test]
     fn test_menu_registry_standard_sections() {
         let reg = MenuRegistry::new();
-        assert!(reg.find_by_id(5001).is_some());
-        assert!(reg.find_by_id(5002).is_some());
-        assert!(reg.find_by_id(5003).is_some());
-        assert!(reg.find_by_id(5004).is_some());
-        assert!(reg.find_by_id(9999).is_none());
+        assert!(reg.find_by_action("menu:frontend:admin").is_some());
+        assert!(reg.find_by_action("menu:frontend:mod").is_some());
+        assert!(reg.find_by_action("menu:frontend:vip").is_some());
+        assert!(reg.find_by_action("menu:frontend:maps").is_some());
+        assert!(reg.find_by_action("invalid").is_none());
     }
 
     #[test]

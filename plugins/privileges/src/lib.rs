@@ -277,7 +277,7 @@ impl Privileges {
 
     // --- Menu Action Handlers ---
 
-    #[menu_action(id = 4001)]
+    #[menu_action("vip:item:armor")]
     fn on_menu_armor(player: &mut Player) {
         player.give_item("item_assaultsuit");
         player.set_armorvalue(100.0);
@@ -285,7 +285,7 @@ impl Privileges {
         player.print_center("[VIP] Получен комплект брони (+100 AP)");
     }
 
-    #[menu_action(id = 4002)]
+    #[menu_action("vip:item:grenades")]
     fn on_menu_grenades(player: &mut Player) {
         player.give_item("weapon_hegrenade");
         player.give_item("weapon_flashbang");
@@ -295,7 +295,7 @@ impl Privileges {
         player.print_center("[VIP] Получен комплект гранат");
     }
 
-    #[menu_action(id = 4003)]
+    #[menu_action("vip:item:m4a1")]
     fn on_menu_m4a1(player: &mut Player) {
         let idx = player.index();
         let already = if let Ok(lock) = PERKS.read() {
@@ -321,7 +321,7 @@ impl Privileges {
         }
     }
 
-    #[menu_action(id = 4004)]
+    #[menu_action("vip:item:ak47")]
     fn on_menu_ak47(player: &mut Player) {
         let idx = player.index();
         let already = if let Ok(lock) = PERKS.read() {
@@ -347,7 +347,7 @@ impl Privileges {
         }
     }
 
-    #[menu_action(id = 4005)]
+    #[menu_action("vip:item:awp")]
     fn on_menu_awp(player: &mut Player) {
         let (round, already) = if let Ok(lock) = PERKS.read() {
             lock.as_ref()
@@ -381,14 +381,14 @@ impl Privileges {
         }
     }
 
-    #[menu_action(id = 4006)]
+    #[menu_action("vip:item:deagle")]
     fn on_menu_deagle(player: &mut Player) {
         player.give_item("weapon_deagle");
         player.play_sound("items/gunpickup2.wav");
         player.print_center("[VIP] Выдан Desert Eagle");
     }
 
-    #[menu_action(id = 4007)]
+    #[menu_action("vip:perk:regen")]
     fn on_menu_toggle_regen(player: &mut Player) {
         let idx = player.index();
         let new_state = if let Ok(mut lock) = PERKS.write() {
