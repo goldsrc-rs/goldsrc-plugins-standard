@@ -200,7 +200,7 @@ impl MapManager {
     /// Reports time remaining until map rotation.
     #[command(
         name = "grs_timeleft",
-        aliases = ["timeleft", "/timeleft"],
+        aliases = ["timeleft"],
         description = "Displays the remaining time for the current map",
         usage = "grs_timeleft"
     )]
@@ -221,7 +221,7 @@ impl MapManager {
     /// Displays the currently active map.
     #[command(
         name = "grs_currentmap",
-        aliases = ["currentmap", "/currentmap"],
+        aliases = ["currentmap"],
         description = "Displays the current active map",
         usage = "grs_currentmap"
     )]
@@ -240,7 +240,7 @@ impl MapManager {
     /// Displays the chosen next map in rotation.
     #[command(
         name = "grs_nextmap",
-        aliases = ["nextmap", "/nextmap"],
+        aliases = ["nextmap"],
         description = "Displays the chosen next map for the upcoming rotation",
         usage = "grs_nextmap"
     )]
@@ -259,7 +259,7 @@ impl MapManager {
     /// Opens the interactive nomination menu.
     #[command(
         name = "grs_maps",
-        aliases = ["maps", "/maps"],
+        aliases = ["maps"],
         description = "Opens the map nomination menu for the upcoming vote",
         usage = "grs_maps"
     )]

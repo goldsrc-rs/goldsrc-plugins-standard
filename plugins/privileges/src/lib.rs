@@ -133,7 +133,7 @@ impl Privileges {
     /// Opens the interactive VIP privileges menu.
     #[command(
         name = "grs_privmenu",
-        aliases = ["vipmenu", "/vip", "!vip", "privmenu", "/priv"],
+        aliases = ["vipmenu", "vip", "privmenu", "priv"],
         capability = "vip.access",
         description = "Opens the interactive VIP privileges and equipment menu",
         usage = "grs_privmenu"

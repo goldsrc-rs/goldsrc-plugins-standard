@@ -180,7 +180,7 @@ impl ChatDirector {
     /// Dispatches an immediate high-priority server announcement to chat and screen.
     #[command(
         name = "grs_chat_broadcast",
-        aliases = ["broadcast", "/broadcast"],
+        aliases = ["broadcast"],
         capability = "chat:broadcast",
         description = "Broadcasts a high-priority announcement to all player chats and HUD",
         usage = "grs_chat_broadcast <message>"

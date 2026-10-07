@@ -132,7 +132,7 @@ impl Moderation {
     /// Slaps a target player with displacement and configurable damage.
     #[command(
         name = "grs_slap",
-        aliases = ["slap", "/slap"],
+        aliases = ["slap"],
         capability = "moderation:action:slap",
         description = "Slaps a target player, inflicting damage and vertical impulse",
         usage = "grs_slap <#userid|name> [damage=0]"
@@ -171,7 +171,7 @@ impl Moderation {
     /// Slay: instantly terminates a player entity.
     #[command(
         name = "grs_slay",
-        aliases = ["slay", "/slay"],
+        aliases = ["slay"],
         capability = "moderation:action:slay",
         description = "Instantly slays a target living player",
         usage = "grs_slay <#userid|name>"
@@ -198,7 +198,7 @@ impl Moderation {
     /// Freeze: immobilizes a player for cheat inspection or verification.
     #[command(
         name = "grs_freeze",
-        aliases = ["freeze", "/freeze"],
+        aliases = ["freeze"],
         capability = "moderation:action:freeze",
         description = "Temporarily immobilizes a player for inspection",
         usage = "grs_freeze <#userid|name> [seconds=30]"
@@ -240,7 +240,7 @@ impl Moderation {
     /// Gag: blocks a player from sending text chat and radio messages.
     #[command(
         name = "grs_gag",
-        aliases = ["gag", "/gag"],
+        aliases = ["gag"],
         capability = "moderation:action:mute:chat",
         description = "Blocks player text chat communications",
         usage = "grs_gag <#userid|name> [duration_mins=10] [reason]"
@@ -284,7 +284,7 @@ impl Moderation {
     /// Mute: blocks player voice transmission.
     #[command(
         name = "grs_mute",
-        aliases = ["mute", "/mute"],
+        aliases = ["mute"],
         capability = "moderation:action:mute:voice",
         description = "Blocks player voice transmission via engine SetClientListening",
         usage = "grs_mute <#userid|name> [duration_mins=10] [reason]"
@@ -346,7 +346,7 @@ impl Moderation {
     /// Kick: immediately disconnects a player from the server.
     #[command(
         name = "grs_kick",
-        aliases = ["kick", "/kick"],
+        aliases = ["kick"],
         capability = "moderation:action:kick",
         description = "Disconnects a player from the server via engine console command",
         usage = "grs_kick <#userid|name> [reason]"
@@ -379,7 +379,7 @@ impl Moderation {
     /// Ban: bans player by SteamID/IP and disconnects client.
     #[command(
         name = "grs_ban",
-        aliases = ["ban", "/ban"],
+        aliases = ["ban"],
         capability = "moderation:action:ban",
         description = "Bans player by SteamID and IP and disconnects client",
         usage = "grs_ban <#userid|name> <duration_mins> [reason]"
@@ -434,7 +434,7 @@ impl Moderation {
     /// Unban: removes an active ban by SteamID or IP string.
     #[command(
         name = "grs_unban",
-        aliases = ["unban", "/unban"],
+        aliases = ["unban"],
         capability = "moderation:action:ban",
         description = "Revokes an active ban by SteamID or IP address",
         usage = "grs_unban <auth_or_ip>"
@@ -461,7 +461,7 @@ impl Moderation {
     /// Inspect: displays connection and player diagnostics.
     #[command(
         name = "grs_inspect",
-        aliases = ["inspect", "/inspect"],
+        aliases = ["inspect"],
         capability = "moderation:inspect",
         description = "Inspects target player diagnostics, coordinates, health, and team",
         usage = "grs_inspect <#userid|name>"
@@ -518,7 +518,7 @@ impl Moderation {
     /// Opens the interactive moderator control panel.
     #[command(
         name = "grs_modmenu",
-        aliases = ["modmenu", "/modmenu"],
+        aliases = ["modmenu"],
         capability = "moderation:inspect",
         description = "Opens the interactive moderator control panel menu",
         usage = "grs_modmenu"

@@ -82,7 +82,7 @@ impl Administration {
     /// Restarts the game round with an optional countdown in seconds.
     #[command(
         name = "grs_restart",
-        aliases = ["restart", "/restart"],
+        aliases = ["restart"],
         capability = "admin:match",
         description = "Restarts the round with a countdown (sets sv_restart cvar)",
         usage = "grs_restart [seconds=1]"
@@ -99,7 +99,7 @@ impl Administration {
     /// Immediate map change with notification.
     #[command(
         name = "grs_map",
-        aliases = ["map", "/map"],
+        aliases = ["map"],
         capability = "admin:map",
         description = "Changes current map immediately via engine changelevel command",
         usage = "grs_map <mapname>"
@@ -121,7 +121,7 @@ impl Administration {
     /// Pauses or unpauses competitive match.
     #[command(
         name = "grs_pause",
-        aliases = ["pause", "/pause"],
+        aliases = ["pause"],
         capability = "admin:match",
         description = "Pauses server match via engine server command",
         usage = "grs_pause"
@@ -136,7 +136,7 @@ impl Administration {
     /// Executes a server configuration file or state preset.
     #[command(
         name = "grs_exec",
-        aliases = ["exec", "/exec"],
+        aliases = ["exec"],
         capability = "admin:match",
         description = "Executes server config file or mode preset via host config engine",
         usage = "grs_exec <cfg_name>"
@@ -310,7 +310,7 @@ impl Administration {
     /// Opens the interactive administrator control panel.
     #[command(
         name = "grs_adminmenu",
-        aliases = ["adminmenu", "/adminmenu"],
+        aliases = ["adminmenu"],
         capability = "admin:engine",
         description = "Opens the interactive server administration menu",
         usage = "grs_adminmenu"

@@ -3,6 +3,7 @@
 Technical administration, staff hierarchy resolution, and match orchestrator plugin for GoldSrc.rs servers.
 
 ## Features
+
 - **Staff Access Registry**: Hierarchical roles (`Moderator`, `Admin`, `SuperAdmin`, `HeadAdmin`).
 - **Match Controls**: Pausing, unpausing, round restarts, and map changes.
 - **Config Presets (`grs_exec`)**: Executes `.toml` and `.cfg` match configurations safely.
@@ -10,6 +11,7 @@ Technical administration, staff hierarchy resolution, and match orchestrator plu
 - **Interactive Menu (`grs_adminmenu`)**: Fast in-game administrator interface.
 
 ## Console Commands
+
 | Command | Capability | Usage | Description |
 | :--- | :--- | :--- | :--- |
 | `grs_who` | `admin:who` | `grs_who` | Displays online staff members and assigned roles |
@@ -20,6 +22,7 @@ Technical administration, staff hierarchy resolution, and match orchestrator plu
 | `grs_adminmenu` | `admin:menu` | `grs_adminmenu` | Opens the administrator control menu |
 
 ## Configuration (`administration.toml` / CVARs)
+
 | CVAR | Type | Default | Range | Description |
 | :--- | :--- | :--- | :--- | :--- |
 | `grs_adm_default_match_cfg` | `String` | `"clanwar.cfg"` | - | Default competitive match configuration |

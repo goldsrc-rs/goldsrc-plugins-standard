@@ -103,7 +103,7 @@ impl MenuFrontend {
     /// Opens the unified server main menu.
     #[command(
         name = "grs_menu",
-        aliases = ["menu", "/menu", "!menu", "mainmenu"],
+        aliases = ["menu", "mainmenu"],
         description = "Opens the unified server main menu with all accessible sections",
         usage = "grs_menu"
     )]
