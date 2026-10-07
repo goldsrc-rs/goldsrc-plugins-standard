@@ -64,7 +64,7 @@ checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
 [[package]]
 name = "goldsrc"
 version = "0.20.0"
-source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#64b66bfaffcd5621d37803f899f8f9aa586b9306"
+source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#a879118b2e161d7f5b6bfa3bbb240fdf4ed89307"
 dependencies = [
  "crossbeam-channel",
  "goldsrc-api",
@@ -76,7 +76,7 @@ dependencies = [
 [[package]]
 name = "goldsrc-api"
 version = "0.20.0"
-source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#64b66bfaffcd5621d37803f899f8f9aa586b9306"
+source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#a879118b2e161d7f5b6bfa3bbb240fdf4ed89307"
 dependencies = [
  "goldsrc-spi",
  "log",
@@ -88,7 +88,7 @@ dependencies = [
 [[package]]
 name = "goldsrc-macros"
 version = "0.20.0"
-source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#64b66bfaffcd5621d37803f899f8f9aa586b9306"
+source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#a879118b2e161d7f5b6bfa3bbb240fdf4ed89307"
 dependencies = [
  "goldsrc-api",
  "proc-macro2",
@@ -99,7 +99,7 @@ dependencies = [
 [[package]]
 name = "goldsrc-spi"
 version = "0.20.0"
-source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#64b66bfaffcd5621d37803f899f8f9aa586b9306"
+source = "git+https://github.com/goldsrc-rs/goldsrc-sdk.git?branch=main#a879118b2e161d7f5b6bfa3bbb240fdf4ed89307"
 dependencies = [
  "serde",
 ]
