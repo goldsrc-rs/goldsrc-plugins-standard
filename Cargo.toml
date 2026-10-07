@@ -1,0 +1,41 @@
+[workspace]
+members = [
+    "plugins/moderation",
+    "plugins/administration",
+    "plugins/privileges",
+    "plugins/menu_frontend",
+    "plugins/chat_director",
+    "plugins/map_manager",
+]
+resolver = "3"
+
+[workspace.package]
+version = "0.20.0"
+edition = "2024"
+authors = ["GoldSrc.rs Team"]
+description = "Official Standard WebAssembly Plugins Suite for GoldSrc.rs"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/goldsrc-rs/goldsrc-plugins-standard"
+
+[workspace.dependencies]
+goldsrc = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "main" }
+goldsrc-api = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "main" }
+goldsrc-macros = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "main" }
+
+wit-bindgen = "0.62.0"
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
+toml = "1.1"
+thiserror = "2.0"
+log = "0.4.33"
+
+[profile.dev]
+opt-level = 0
+debug = 1
+
+[profile.release]
+lto = "thin"
+opt-level = "z"
+strip = "debuginfo"
+codegen-units = 16
+panic = "abort"
