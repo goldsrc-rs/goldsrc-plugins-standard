@@ -6,6 +6,7 @@ members = [
     "plugins/menu_frontend",
     "plugins/chat_director",
     "plugins/map_manager",
+    "plugins/coreutils",
 ]
 resolver = "3"
 
