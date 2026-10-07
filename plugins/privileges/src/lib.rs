@@ -95,25 +95,35 @@ impl Privileges {
         }
     }
 
-    /// Passive ECS system running during player post-think to regenerate health for living VIPs.
-    #[system(stage = "post_think", phase = "modify")]
-    fn vip_passive_regen(#[refined(Alive)] player: &mut Player) {
-        if player.has_capability(caps::ACCESS) {
-            let idx = player.index();
-            let is_enabled = if let Ok(lock) = PERKS.read() {
-                lock.as_ref()
-                    .map(|s| s.is_regen_enabled(idx))
-                    .unwrap_or(true)
-            } else {
-                true
-            };
+    /// Passive health regeneration running each frame for living VIP players.
+    #[on_frame]
+    fn frame_tick() {
+        let regen_hp = if let Ok(lock) = CONFIG.read() {
+            lock.as_ref().map(|c| c.regen_hp).unwrap_or(0.1)
+        } else {
+            0.1
+        };
 
-            if is_enabled {
-                player.modify::<Health>(|hp| {
-                    if hp.current() < 100.0 {
-                        hp.heal(0.1);
-                    }
-                });
+        if regen_hp <= 0.0 {
+            return;
+        }
+
+        for i in 1..=32 {
+            let mut player = Player::new(i);
+            if player.is_valid() && player.is_alive() && player.has_capability(caps::ACCESS) {
+                let is_enabled = if let Ok(lock) = PERKS.read() {
+                    lock.as_ref().map(|s| s.is_regen_enabled(i)).unwrap_or(true)
+                } else {
+                    true
+                };
+
+                if is_enabled {
+                    player.modify::<Health>(|hp| {
+                        if hp.current() < 100.0 {
+                            hp.heal(regen_hp);
+                        }
+                    });
+                }
             }
         }
     }
