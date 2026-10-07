@@ -168,7 +168,7 @@ pub fn run_wc(args: &[String]) -> Result<String, String> {
 
     let lines = content.lines().count();
     let words = content.split_whitespace().count();
-    let bytes = content.as_bytes().len();
+    let bytes = content.len();
 
     if args.contains(&"-l".to_string()) {
         Ok(format!("{} {}", lines, file))
@@ -190,6 +190,7 @@ pub fn run_sha256sum(args: &[String]) -> Result<String, String> {
     Ok(format!("{}  {}", hash, file))
 }
 
+#[allow(clippy::chunks_exact_to_as_chunks)]
 fn simple_sha256(data: &[u8]) -> String {
     // Standard SHA-256 implementation
     let mut h: [u32; 8] = [

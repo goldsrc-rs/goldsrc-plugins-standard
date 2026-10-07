@@ -34,9 +34,9 @@ impl Coreutils {
         let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
         match applets::run_grep(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(&output);
+                Player::new(0).print_console(output);
             }
-            Err(err) => Player::new(0).print_console(&format!("grep: {err}\n")),
+            Err(err) => Player::new(0).print_console(format!("grep: {err}\n")),
         }
     }
 
@@ -49,9 +49,9 @@ impl Coreutils {
         let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
         match applets::run_cat(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(&output);
+                Player::new(0).print_console(output);
             }
-            Err(err) => Player::new(0).print_console(&format!("cat: {err}\n")),
+            Err(err) => Player::new(0).print_console(format!("cat: {err}\n")),
         }
     }
 
@@ -64,9 +64,9 @@ impl Coreutils {
         let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
         match applets::run_head(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(&output);
+                Player::new(0).print_console(output);
             }
-            Err(err) => Player::new(0).print_console(&format!("head: {err}\n")),
+            Err(err) => Player::new(0).print_console(format!("head: {err}\n")),
         }
     }
 
@@ -79,9 +79,9 @@ impl Coreutils {
         let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
         match applets::run_tail(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(&output);
+                Player::new(0).print_console(output);
             }
-            Err(err) => Player::new(0).print_console(&format!("tail: {err}\n")),
+            Err(err) => Player::new(0).print_console(format!("tail: {err}\n")),
         }
     }
 
@@ -93,8 +93,8 @@ impl Coreutils {
     fn cmd_wc(args: String) {
         let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
         match applets::run_wc(&raw_args) {
-            Ok(output) => Player::new(0).print_console(&format!("{output}\n")),
-            Err(err) => Player::new(0).print_console(&format!("wc: {err}\n")),
+            Ok(output) => Player::new(0).print_console(format!("{output}\n")),
+            Err(err) => Player::new(0).print_console(format!("wc: {err}\n")),
         }
     }
 
@@ -106,8 +106,8 @@ impl Coreutils {
     fn cmd_sha256sum(args: String) {
         let raw_args: Vec<String> = args.split_whitespace().map(|s| s.to_string()).collect();
         match applets::run_sha256sum(&raw_args) {
-            Ok(output) => Player::new(0).print_console(&format!("{output}\n")),
-            Err(err) => Player::new(0).print_console(&format!("sha256sum: {err}\n")),
+            Ok(output) => Player::new(0).print_console(format!("{output}\n")),
+            Err(err) => Player::new(0).print_console(format!("sha256sum: {err}\n")),
         }
     }
 }
