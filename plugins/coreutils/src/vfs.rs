@@ -1,92 +1,117 @@
 //! Sandboxed path resolution and file inspection for coreutils.
+//!
+//! Exposes virtual filesystem primitives delegating directly to the Host VFS WIT interface.
+//! Plugins have 0 hardcoded paths, 0 OS assumptions, and zero knowledge of mod directory layout.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+#[cfg(not(test))]
+use goldsrc_api::bindings::goldsrc::engine::api;
+use goldsrc_api::bindings::goldsrc::engine::api::DirEntry;
 
-/// Safe VFS helper to restrict read access within the server directory.
+/// Safe VFS helper delegating to Host VFS WIT interface.
 pub struct SafeVfs;
 
 impl SafeVfs {
-    /// Resolve candidate relative path checking addon dir, mod dir, and server root.
-    pub fn resolve_path(rel_path: &str) -> Option<PathBuf> {
-        let p = Path::new(rel_path);
-        // Candidate 1: directly as given
-        if p.exists() {
-            return Some(p.to_path_buf());
-        }
-
-        // Candidate 2: inside cstrike/addons/goldsrc/
-        let in_addon = Path::new("cstrike/addons/goldsrc").join(p);
-        if in_addon.exists() {
-            return Some(in_addon);
-        }
-
-        // Candidate 3: inside addons/goldsrc/
-        let in_mod_addon = Path::new("addons/goldsrc").join(p);
-        if in_mod_addon.exists() {
-            return Some(in_mod_addon);
-        }
-
-        // Candidate 4: inside cstrike/
-        let in_cstrike = Path::new("cstrike").join(p);
-        if in_cstrike.exists() {
-            return Some(in_cstrike);
-        }
-
-        None
-    }
-
-    /// Read text file with sandboxed boundary check.
+    /// Read text file via Host VFS.
     pub fn read_to_string(rel_path: &str) -> Result<String, String> {
-        // Disallow path traversal attacks
         if rel_path.contains("..") {
             return Err("Access denied: path traversal not permitted".to_string());
         }
-
-        let path = Self::resolve_path(rel_path)
-            .ok_or_else(|| format!("File not found: {rel_path}"))?;
-
-        fs::read_to_string(&path).map_err(|e| format!("Failed to read '{rel_path}': {e}"))
+        #[cfg(test)]
+        {
+            std::fs::read_to_string(rel_path).map_err(|e| e.to_string())
+        }
+        #[cfg(not(test))]
+        {
+            api::host_fs_read_text(rel_path)
+        }
     }
 
-    /// Read binary file bytes with sandboxed boundary check.
+    /// Read binary file bytes via Host VFS.
     pub fn read_bytes(rel_path: &str) -> Result<Vec<u8>, String> {
         if rel_path.contains("..") {
             return Err("Access denied: path traversal not permitted".to_string());
         }
-
-        let path = Self::resolve_path(rel_path)
-            .ok_or_else(|| format!("File not found: {rel_path}"))?;
-
-        fs::read(&path).map_err(|e| format!("Failed to read '{rel_path}': {e}"))
+        #[cfg(test)]
+        {
+            std::fs::read(rel_path).map_err(|e| e.to_string())
+        }
+        #[cfg(not(test))]
+        {
+            api::host_fs_read_bytes(rel_path)
+        }
     }
 
-    /// Collect matching files under directory with extension filter.
-    pub fn find_files(dir: &Path, ext_pattern: Option<&str>) -> Vec<PathBuf> {
-        let mut results = Vec::new();
-        let target_dir = if dir.exists() {
-            dir.to_path_buf()
-        } else if let Some(resolved) = Self::resolve_path(&dir.to_string_lossy()) {
-            resolved
-        } else {
-            dir.to_path_buf()
-        };
+    /// List directory entries via Host VFS.
+    pub fn list_dir(rel_path: &str) -> Result<Vec<DirEntry>, String> {
+        if rel_path.contains("..") {
+            return Err("Access denied: path traversal not permitted".to_string());
+        }
+        #[cfg(test)]
+        {
+            let rd = std::fs::read_dir(rel_path).map_err(|e| e.to_string())?;
+            let mut entries = Vec::new();
+            for item in rd.flatten() {
+                let name = item.file_name().to_string_lossy().to_string();
+                let is_dir = item.file_type().map(|t| t.is_dir()).unwrap_or(false);
+                let size = item.metadata().map(|m| m.len()).unwrap_or(0);
+                entries.push(DirEntry { name, is_dir, size });
+            }
+            Ok(entries)
+        }
+        #[cfg(not(test))]
+        {
+            api::host_fs_list_dir(rel_path)
+        }
+    }
 
-        if let Ok(entries) = fs::read_dir(&target_dir) {
-            for entry in entries.flatten() {
-                let path = entry.path();
-                if path.is_dir() {
-                    results.extend(Self::find_files(&path, ext_pattern));
+    /// Recursively collect matching file paths under directory.
+    pub fn find_files(dir: &str, ext_pattern: Option<&str>) -> Vec<String> {
+        let mut results = Vec::new();
+        if let Ok(entries) = Self::list_dir(dir) {
+            for entry in entries {
+                let child_path = if dir == "." || dir.is_empty() {
+                    entry.name.clone()
+                } else {
+                    format!("{dir}/{}", entry.name)
+                };
+
+                if entry.is_dir {
+                    results.extend(Self::find_files(&child_path, ext_pattern));
                 } else if let Some(pattern) = ext_pattern {
                     let pattern_ext = pattern.trim_start_matches("*.");
-                    if path.extension().and_then(|e| e.to_str()) == Some(pattern_ext) {
-                        results.push(path);
+                    if entry.name.ends_with(&format!(".{pattern_ext}")) || entry.name == pattern {
+                        results.push(child_path);
                     }
                 } else {
-                    results.push(path);
+                    results.push(child_path);
                 }
             }
         }
         results
+    }
+
+    /// Recursively calculate directory size in bytes.
+    pub fn du_calc(dir: &str) -> (u64, Vec<(String, u64)>) {
+        let mut total = 0u64;
+        let mut items = Vec::new();
+        if let Ok(entries) = Self::list_dir(dir) {
+            for entry in entries {
+                let child_path = if dir == "." || dir.is_empty() {
+                    entry.name.clone()
+                } else {
+                    format!("{dir}/{}", entry.name)
+                };
+                if entry.is_dir {
+                    let (sub_total, sub_items) = Self::du_calc(&child_path);
+                    total += sub_total;
+                    items.extend(sub_items);
+                    items.push((child_path, sub_total));
+                } else {
+                    total += entry.size;
+                    items.push((child_path, entry.size));
+                }
+            }
+        }
+        (total, items)
     }
 }

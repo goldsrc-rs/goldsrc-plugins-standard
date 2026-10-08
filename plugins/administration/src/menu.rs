@@ -2,13 +2,15 @@
 
 use goldsrc::prelude::*;
 
-pub const ACTION_ADM_RESTART_1: u32 = 3001;
-pub const ACTION_ADM_RESTART_3: u32 = 3002;
-pub const ACTION_ADM_PAUSE: u32 = 3003;
-pub const ACTION_ADM_CFG_CW: u32 = 3004;
-pub const ACTION_ADM_CFG_WARMUP: u32 = 3005;
-pub const ACTION_ADM_MAP_CHANGE: u32 = 3006;
-pub const ACTION_ADM_STAFF_LIST: u32 = 3007;
+pub mod actions {
+    pub const RESTART_1: &str = "admin:restart_1";
+    pub const RESTART_3: &str = "admin:restart_3";
+    pub const PAUSE: &str = "admin:pause";
+    pub const CFG_CW: &str = "admin:cfg_cw";
+    pub const CFG_WARMUP: &str = "admin:cfg_warmup";
+    pub const MAP_CHANGE: &str = "admin:map_change";
+    pub const STAFF_LIST: &str = "admin:staff_list";
+}
 
 /// Builds the root administrator control menu using localized dictionary.
 pub fn build_admin_main_menu_localized(lang: &str) -> Menu {
@@ -21,11 +23,11 @@ pub fn build_admin_main_menu_localized(lang: &str) -> Menu {
 
     Menu::builder(title)
         .style(MenuStyle::brackets())
-        .item(MenuItem::new(item_slay, ACTION_ADM_RESTART_1).keep_open())
-        .item(MenuItem::new(item_slap, ACTION_ADM_RESTART_3).keep_open())
-        .item(MenuItem::new(item_teleport, ACTION_ADM_PAUSE).keep_open())
-        .item(MenuItem::new(item_team, ACTION_ADM_CFG_CW).keep_open())
-        .item(MenuItem::new(item_map, ACTION_ADM_MAP_CHANGE).keep_open())
+        .item(MenuItem::action(item_slay, actions::RESTART_1).keep_open())
+        .item(MenuItem::action(item_slap, actions::RESTART_3).keep_open())
+        .item(MenuItem::action(item_teleport, actions::PAUSE).keep_open())
+        .item(MenuItem::action(item_team, actions::CFG_CW).keep_open())
+        .item(MenuItem::action(item_map, actions::MAP_CHANGE).keep_open())
         .build()
 }
 

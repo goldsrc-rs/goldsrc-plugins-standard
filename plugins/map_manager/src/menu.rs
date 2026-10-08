@@ -2,7 +2,15 @@
 
 use goldsrc::prelude::*;
 
-pub const ACTION_VOTE_BASE: u32 = 6000; // 6000 + option_idx
+pub mod actions {
+    pub const VOTE_0: &str = "map_manager:vote_0";
+    pub const VOTE_1: &str = "map_manager:vote_1";
+    pub const VOTE_2: &str = "map_manager:vote_2";
+    pub const VOTE_3: &str = "map_manager:vote_3";
+    pub const VOTE_4: &str = "map_manager:vote_4";
+
+    pub const VOTE_OPTIONS: [&str; 5] = [VOTE_0, VOTE_1, VOTE_2, VOTE_3, VOTE_4];
+}
 
 /// Builds the interactive map voting ballot menu localized for the specified language.
 pub fn build_vote_menu_localized(options: &[String], lang: &str) -> Menu {
@@ -11,7 +19,11 @@ pub fn build_vote_menu_localized(options: &[String], lang: &str) -> Menu {
 
     for (idx, map) in options.iter().enumerate() {
         let label = format!("{}. {}", idx + 1, map);
-        builder = builder.item(MenuItem::new(label, ACTION_VOTE_BASE + idx as u32));
+        let action = actions::VOTE_OPTIONS
+            .get(idx)
+            .copied()
+            .unwrap_or("map_manager:vote_overflow");
+        builder = builder.item(MenuItem::action(label, action));
     }
 
     builder.build()
@@ -29,7 +41,8 @@ pub fn build_nomination_menu_localized(maps: &[String], lang: &str) -> Menu {
 
     for (idx, map) in maps.iter().take(8).enumerate() {
         let label = format!("{}. {}", idx + 1, map);
-        builder = builder.item(MenuItem::new(label, ACTION_VOTE_BASE + 100 + idx as u32));
+        let action = format!("map_manager:nominate_{idx}");
+        builder = builder.item(MenuItem::action(label, action));
     }
 
     builder.build()

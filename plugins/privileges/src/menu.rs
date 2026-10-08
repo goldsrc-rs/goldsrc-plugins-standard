@@ -2,13 +2,15 @@
 
 use goldsrc::prelude::*;
 
-pub const ACTION_VIP_ARMOR: u32 = 4001;
-pub const ACTION_VIP_GRENADES: u32 = 4002;
-pub const ACTION_VIP_M4A1: u32 = 4003;
-pub const ACTION_VIP_AK47: u32 = 4004;
-pub const ACTION_VIP_AWP: u32 = 4005;
-pub const ACTION_VIP_DEAGLE: u32 = 4006;
-pub const ACTION_VIP_TOGGLE_REGEN: u32 = 4007;
+pub mod actions {
+    pub const VIP_ARMOR: &str = "vip:armor";
+    pub const VIP_GRENADES: &str = "vip:grenades";
+    pub const VIP_M4A1: &str = "vip:m4a1";
+    pub const VIP_AK47: &str = "vip:ak47";
+    pub const VIP_AWP: &str = "vip:awp";
+    pub const VIP_DEAGLE: &str = "vip:deagle";
+    pub const VIP_TOGGLE_REGEN: &str = "vip:toggle_regen";
+}
 
 /// Builds the interactive VIP privileges menu using player's preferred language.
 pub fn build_vip_menu_localized(round_number: u32, lang: &str) -> Menu {
@@ -24,22 +26,22 @@ pub fn build_vip_menu_localized(round_number: u32, lang: &str) -> Menu {
     let mut builder = Menu::builder(title)
         .style(MenuStyle::brackets())
         .item(
-            MenuItem::new(item_armor, ACTION_VIP_ARMOR)
+            MenuItem::action(item_armor, actions::VIP_ARMOR)
                 .require_spec::<Alive>()
                 .keep_open(),
         )
         .item(
-            MenuItem::new(item_grenades, ACTION_VIP_GRENADES)
+            MenuItem::action(item_grenades, actions::VIP_GRENADES)
                 .require_spec::<Alive>()
                 .keep_open(),
         )
         .item(
-            MenuItem::new(item_m4a1, ACTION_VIP_M4A1)
+            MenuItem::action(item_m4a1, actions::VIP_M4A1)
                 .require_spec::<Alive>()
                 .keep_open(),
         )
         .item(
-            MenuItem::new(item_ak47, ACTION_VIP_AK47)
+            MenuItem::action(item_ak47, actions::VIP_AK47)
                 .require_spec::<Alive>()
                 .keep_open(),
         );
@@ -47,7 +49,7 @@ pub fn build_vip_menu_localized(round_number: u32, lang: &str) -> Menu {
     // AWP sniper rifle restricted to round >= 3
     if round_number >= 3 {
         builder = builder.item(
-            MenuItem::new(item_awp, ACTION_VIP_AWP)
+            MenuItem::action(item_awp, actions::VIP_AWP)
                 .require_spec::<Alive>()
                 .keep_open(),
         );
@@ -59,16 +61,16 @@ pub fn build_vip_menu_localized(round_number: u32, lang: &str) -> Menu {
             round = 3,
             cur = round_number
         );
-        builder = builder.item(MenuItem::new(restricted_label, ACTION_VIP_AWP).keep_open());
+        builder = builder.item(MenuItem::action(restricted_label, actions::VIP_AWP).keep_open());
     }
 
     builder
         .item(
-            MenuItem::new(item_deagle, ACTION_VIP_DEAGLE)
+            MenuItem::action(item_deagle, actions::VIP_DEAGLE)
                 .require_spec::<Alive>()
                 .keep_open(),
         )
-        .item(MenuItem::new(item_toggle, ACTION_VIP_TOGGLE_REGEN).keep_open())
+        .item(MenuItem::action(item_toggle, actions::VIP_TOGGLE_REGEN).keep_open())
         .build()
 }
 

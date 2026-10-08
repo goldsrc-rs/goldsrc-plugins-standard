@@ -325,36 +325,36 @@ impl Administration {
 
     // --- Menu Action Handlers ---
 
-    #[menu_action(id = 3001)]
+    #[menu_action(actions::RESTART_1)]
     fn on_menu_restart_1(player: &mut Player) {
         cvar::cvar_set_float("sv_restart", 1.0);
         player.print_center("[Admin Menu] Рестарт раунда через 1 сек.");
     }
 
-    #[menu_action(id = 3002)]
+    #[menu_action(actions::RESTART_3)]
     fn on_menu_restart_3(player: &mut Player) {
         cvar::cvar_set_float("sv_restart", 3.0);
         player.print_center("[Admin Menu] Рестарт раунда через 3 сек.");
     }
 
-    #[menu_action(id = 3003)]
+    #[menu_action(actions::PAUSE)]
     fn on_menu_pause(player: &mut Player) {
         player.print_chat(
             "[Admin Menu STUB] Пауза недоступна: отсутствует host-server-command в WIT.",
         );
     }
 
-    #[menu_action(id = 3004)]
+    #[menu_action(actions::CFG_CW)]
     fn on_menu_cfg_cw(player: &mut Player) {
         player.print_chat("[Admin Menu STUB] Загрузка Clanwar конфига недоступна: отсутствует host-server-command в WIT.");
     }
 
-    #[menu_action(id = 3005)]
+    #[menu_action(actions::CFG_WARMUP)]
     fn on_menu_cfg_warmup(player: &mut Player) {
         player.print_chat("[Admin Menu STUB] Загрузка Warmup конфига недоступна: отсутствует host-server-command в WIT.");
     }
 
-    #[menu_action(id = 3006)]
+    #[menu_action(actions::MAP_CHANGE)]
     fn on_menu_map(player: &mut Player) {
         player.print_chat(
             "[Admin Menu STUB] Смена карты недоступна: отсутствует host-server-command в WIT.",

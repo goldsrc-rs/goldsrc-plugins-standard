@@ -112,11 +112,8 @@ impl ChatDirector {
                 log_info!("[Staff Chat] {}", formatted_staff_msg);
 
                 // Dispatch to online staff members possessing admin:chat capability
-                for i in 1..=32 {
-                    let p = Player::new(i);
-                    if p.is_valid()
-                        && (p.has_capability(caps::CHAT_STAFF)
-                            || p.has_capability("moderation:inspect"))
+                for p in Players::all() {
+                    if p.has_capability(caps::CHAT_STAFF) || p.has_capability("moderation:inspect")
                     {
                         p.print_chat(&formatted_staff_msg);
                     }
@@ -221,11 +218,8 @@ impl ChatDirector {
             .unwrap_or_else(|| format!("Player #{}", player.index()));
         let formatted = format!("(ADMIN CHAT) {sender_name}: {message}");
 
-        for i in 1..=32 {
-            let p = Player::new(i);
-            if p.is_valid()
-                && (p.has_capability(caps::CHAT_STAFF) || p.has_capability("moderation:inspect"))
-            {
+        for p in Players::all() {
+            if p.has_capability(caps::CHAT_STAFF) || p.has_capability("moderation:inspect") {
                 p.print_chat(&formatted);
             }
         }

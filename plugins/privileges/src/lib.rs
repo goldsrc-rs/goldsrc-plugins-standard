@@ -86,7 +86,7 @@ impl Privileges {
     }
 
     /// Event handler for round start: resets per-round equipment locks.
-    #[event("round_start")]
+    #[event(EngineEvent::RoundStart)]
     fn on_round_start() {
         if let Ok(mut lock) = PERKS.write()
             && let Some(service) = lock.as_mut()
@@ -95,25 +95,27 @@ impl Privileges {
         }
     }
 
-    /// Passive ECS system running during player post-think to regenerate health for living VIPs.
-    #[system(stage = "post_think", phase = "modify")]
-    fn vip_passive_regen(#[refined(Alive)] player: &mut Player) {
-        if player.has_capability(caps::ACCESS) {
-            let idx = player.index();
-            let is_enabled = if let Ok(lock) = PERKS.read() {
-                lock.as_ref()
-                    .map(|s| s.is_regen_enabled(idx))
-                    .unwrap_or(true)
-            } else {
-                true
-            };
+    /// Passive event running during player post-think to regenerate health for living VIPs.
+    #[event(EngineEvent::PlayerPostThink)]
+    fn vip_passive_regen() {
+        for mut player in Players::alive() {
+            let slot = player.index();
+            if player.has_capability(caps::ACCESS) {
+                let is_enabled = if let Ok(lock) = PERKS.read() {
+                    lock.as_ref()
+                        .map(|s| s.is_regen_enabled(slot))
+                        .unwrap_or(true)
+                } else {
+                    true
+                };
 
-            if is_enabled {
-                player.modify::<Health>(|hp| {
-                    if hp.current() < 100.0 {
-                        hp.heal(0.1);
-                    }
-                });
+                if is_enabled {
+                    player.modify::<Health>(|hp| {
+                        if hp.current() < 100.0 {
+                            hp.heal(0.1);
+                        }
+                    });
+                }
             }
         }
     }
@@ -227,16 +229,13 @@ impl Privileges {
         let mut active_count = 0;
         let mut candidate: Option<Player> = None;
 
-        for slot in 1..=32 {
-            let p = Player::new(slot);
-            if p.is_valid() {
-                active_count += 1;
-                if !p.has_capability(caps::ACCESS)
-                    && !p.has_capability(caps::SLOT)
-                    && (p.is_hltv() || candidate.is_none())
-                {
-                    candidate = Some(p);
-                }
+        for p in Players::all() {
+            active_count += 1;
+            if !p.has_capability(caps::ACCESS)
+                && !p.has_capability(caps::SLOT)
+                && (p.is_hltv() || candidate.is_none())
+            {
+                candidate = Some(p);
             }
         }
 
@@ -267,7 +266,7 @@ impl Privileges {
 
     // --- Menu Action Handlers ---
 
-    #[menu_action(id = 4001)]
+    #[menu_action(actions::VIP_ARMOR)]
     fn on_menu_armor(player: &mut Player) {
         player.give_item("item_assaultsuit");
         player.set_armorvalue(100.0);
@@ -275,7 +274,7 @@ impl Privileges {
         player.print_center("[VIP] Получен комплект брони (+100 AP)");
     }
 
-    #[menu_action(id = 4002)]
+    #[menu_action(actions::VIP_GRENADES)]
     fn on_menu_grenades(player: &mut Player) {
         player.give_item("weapon_hegrenade");
         player.give_item("weapon_flashbang");
@@ -285,7 +284,7 @@ impl Privileges {
         player.print_center("[VIP] Получен комплект гранат");
     }
 
-    #[menu_action(id = 4003)]
+    #[menu_action(actions::VIP_M4A1)]
     fn on_menu_m4a1(player: &mut Player) {
         let idx = player.index();
         let already = if let Ok(lock) = PERKS.read() {
@@ -311,7 +310,7 @@ impl Privileges {
         }
     }
 
-    #[menu_action(id = 4004)]
+    #[menu_action(actions::VIP_AK47)]
     fn on_menu_ak47(player: &mut Player) {
         let idx = player.index();
         let already = if let Ok(lock) = PERKS.read() {
@@ -337,7 +336,7 @@ impl Privileges {
         }
     }
 
-    #[menu_action(id = 4005)]
+    #[menu_action(actions::VIP_AWP)]
     fn on_menu_awp(player: &mut Player) {
         let (round, already) = if let Ok(lock) = PERKS.read() {
             lock.as_ref()
@@ -371,14 +370,14 @@ impl Privileges {
         }
     }
 
-    #[menu_action(id = 4006)]
+    #[menu_action(actions::VIP_DEAGLE)]
     fn on_menu_deagle(player: &mut Player) {
         player.give_item("weapon_deagle");
         player.play_sound("items/gunpickup2.wav");
         player.print_center("[VIP] Выдан Desert Eagle");
     }
 
-    #[menu_action(id = 4007)]
+    #[menu_action(actions::VIP_TOGGLE_REGEN)]
     fn on_menu_toggle_regen(player: &mut Player) {
         let idx = player.index();
         let new_state = if let Ok(mut lock) = PERKS.write() {

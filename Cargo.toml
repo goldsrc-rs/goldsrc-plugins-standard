@@ -33,6 +33,7 @@ log = "0.4.33"
 [profile.dev]
 opt-level = 0
 debug = 1
+overflow-checks = true
 
 [profile.release]
 lto = "thin"
@@ -40,3 +41,17 @@ opt-level = "z"
 strip = "debuginfo"
 codegen-units = 16
 panic = "abort"
+overflow-checks = true
+
+[patch."https://github.com/goldsrc-rs/goldsrc-sdk.git"]
+goldsrc = { path = "../goldsrc-sdk/goldsrc" }
+goldsrc-api = { path = "../goldsrc-sdk/goldsrc-api" }
+goldsrc-macros = { path = "../goldsrc-sdk/goldsrc-macros" }
+goldsrc-sys = { path = "../goldsrc-sdk/goldsrc-sys" }
+goldsrc-spi = { path = "../goldsrc-sdk/goldsrc-spi" }
+
+[patch."https://github.com/ulquiorracode/stitch-rs.git"]
+stitch-rs = { path = "../../stitch-rs" }
+stitch-core = { path = "../../stitch-rs/crates/stitch-core" }
+stitch-macros = { path = "../../stitch-rs/crates/stitch-macros" }
+

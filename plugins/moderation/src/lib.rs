@@ -115,12 +115,9 @@ impl Moderation {
             && let Some(repo) = lock.as_mut()
         {
             // Keep frozen players in place (set velocity to zero)
-            for i in 1..=32 {
-                if repo.is_player_frozen(i, current_time) {
-                    let mut p = Player::new(i);
-                    if p.is_valid() {
-                        p.set_velocity(Vector3::new(0.0, 0.0, 0.0));
-                    }
+            for mut p in Players::all() {
+                if repo.is_player_frozen(p.index(), current_time) {
+                    p.set_velocity(Vector3::new(0.0, 0.0, 0.0));
                 }
             }
             repo.tick_cleanup(current_time);
@@ -299,12 +296,9 @@ impl Moderation {
         let expire = host_time() + (mins as f32 * 60.0);
 
         // Enforce engine voice silence across all active player receivers
-        for slot in 1..=32 {
-            if slot != target.index() {
-                let receiver = Player::new(slot);
-                if receiver.is_valid() {
-                    receiver.set_listening(&target, false);
-                }
+        for receiver in Players::all() {
+            if receiver.index() != target.index() {
+                receiver.set_listening(&target, false);
             }
         }
 
@@ -533,52 +527,52 @@ impl Moderation {
 
     // --- Interactive Menu Action Handlers ---
 
-    #[menu_action(id = 1001)]
+    #[menu_action(actions::SLAP)]
     fn on_menu_slap(player: &mut Player) {
         let menu = build_target_selection_menu("Slap (Толчок)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1002)]
+    #[menu_action(actions::SLAY)]
     fn on_menu_slay(player: &mut Player) {
         let menu = build_target_selection_menu("Slay (Уничтожение)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1003)]
+    #[menu_action(actions::FREEZE)]
     fn on_menu_freeze(player: &mut Player) {
         let menu = build_target_selection_menu("Freeze (Заморозка)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1004)]
+    #[menu_action(actions::GAG)]
     fn on_menu_gag(player: &mut Player) {
         let menu = build_target_selection_menu("Gag (Блок чата)");
         player.open_menu(&menu);
     }
 
-    #[menu_action(id = 1005)]
+    #[menu_action(actions::MUTE)]
     fn on_menu_mute(player: &mut Player) {
         player.print_chat(
             "[Moderation STUB] Voice Mute недоступен: отсутствует SetClientListening в host WIT.",
         );
     }
 
-    #[menu_action(id = 1006)]
+    #[menu_action(actions::KICK)]
     fn on_menu_kick(player: &mut Player) {
         player.print_chat(
             "[Moderation STUB] Kick недоступен: отсутствует host-disconnect-client в host WIT.",
         );
     }
 
-    #[menu_action(id = 1007)]
+    #[menu_action(actions::BAN)]
     fn on_menu_ban(player: &mut Player) {
         player.print_chat(
             "[Moderation STUB] Ban недоступен: отсутствует получение SteamID/IP в host WIT.",
         );
     }
 
-    #[menu_action(id = 1008)]
+    #[menu_action(actions::INSPECT)]
     fn on_menu_inspect(player: &mut Player) {
         let menu = build_target_selection_menu("Inspect (Инспекция)");
         player.open_menu(&menu);

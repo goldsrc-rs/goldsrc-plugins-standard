@@ -181,11 +181,8 @@ impl MapManager {
 
         // Open voting menu for all active players
         let ballot = build_vote_menu(&options);
-        for i in 1..=32 {
-            let p = Player::new(i);
-            if p.is_valid() {
-                p.open_menu(&ballot);
-            }
+        for p in Players::all() {
+            p.open_menu(&ballot);
         }
 
         log_info!(
@@ -298,27 +295,27 @@ impl MapManager {
 
     // --- Menu Action Handlers for Voting Ballot ---
 
-    #[menu_action(id = 6000)]
+    #[menu_action(actions::VOTE_0)]
     fn on_vote_opt_0(player: &mut Player) {
         Self::record_player_vote(player, 0);
     }
 
-    #[menu_action(id = 6001)]
+    #[menu_action(actions::VOTE_1)]
     fn on_vote_opt_1(player: &mut Player) {
         Self::record_player_vote(player, 1);
     }
 
-    #[menu_action(id = 6002)]
+    #[menu_action(actions::VOTE_2)]
     fn on_vote_opt_2(player: &mut Player) {
         Self::record_player_vote(player, 2);
     }
 
-    #[menu_action(id = 6003)]
+    #[menu_action(actions::VOTE_3)]
     fn on_vote_opt_3(player: &mut Player) {
         Self::record_player_vote(player, 3);
     }
 
-    #[menu_action(id = 6004)]
+    #[menu_action(actions::VOTE_4)]
     fn on_vote_opt_4(player: &mut Player) {
         Self::record_player_vote(player, 4);
     }

@@ -2,16 +2,16 @@
 
 use goldsrc::prelude::*;
 
-pub const ACTION_MENU_SLAP: u32 = 1001;
-pub const ACTION_MENU_SLAY: u32 = 1002;
-pub const ACTION_MENU_FREEZE: u32 = 1003;
-pub const ACTION_MENU_GAG: u32 = 1004;
-pub const ACTION_MENU_MUTE: u32 = 1005;
-pub const ACTION_MENU_KICK: u32 = 1006;
-pub const ACTION_MENU_BAN: u32 = 1007;
-pub const ACTION_MENU_INSPECT: u32 = 1008;
-
-pub const ACTION_TARGET_BASE: u32 = 2000; // 2000 + target_index (1..32)
+pub mod actions {
+    pub const SLAP: &str = "mod:slap";
+    pub const SLAY: &str = "mod:slay";
+    pub const FREEZE: &str = "mod:freeze";
+    pub const GAG: &str = "mod:gag";
+    pub const MUTE: &str = "mod:mute";
+    pub const KICK: &str = "mod:kick";
+    pub const BAN: &str = "mod:ban";
+    pub const INSPECT: &str = "mod:inspect";
+}
 
 /// Builds the root moderator control panel using the player's preferred language.
 pub fn build_moderator_main_menu_localized(lang: &str) -> Menu {
@@ -26,14 +26,14 @@ pub fn build_moderator_main_menu_localized(lang: &str) -> Menu {
 
     Menu::builder(title)
         .style(MenuStyle::brackets())
-        .item(MenuItem::new(item_slap, ACTION_MENU_SLAP).keep_open())
-        .item(MenuItem::new(item_slay, ACTION_MENU_SLAY).keep_open())
-        .item(MenuItem::new(item_freeze, ACTION_MENU_FREEZE).keep_open())
-        .item(MenuItem::new(item_gag, ACTION_MENU_GAG).keep_open())
-        .item(MenuItem::new(item_mute, ACTION_MENU_MUTE).keep_open())
-        .item(MenuItem::new(item_kick, ACTION_MENU_KICK).keep_open())
-        .item(MenuItem::new(item_ban, ACTION_MENU_BAN).keep_open())
-        .item(MenuItem::new("8. Inspect", ACTION_MENU_INSPECT).keep_open())
+        .item(MenuItem::action(item_slap, actions::SLAP).keep_open())
+        .item(MenuItem::action(item_slay, actions::SLAY).keep_open())
+        .item(MenuItem::action(item_freeze, actions::FREEZE).keep_open())
+        .item(MenuItem::action(item_gag, actions::GAG).keep_open())
+        .item(MenuItem::action(item_mute, actions::MUTE).keep_open())
+        .item(MenuItem::action(item_kick, actions::KICK).keep_open())
+        .item(MenuItem::action(item_ban, actions::BAN).keep_open())
+        .item(MenuItem::action("8. Inspect", actions::INSPECT).keep_open())
         .build()
 }
 
@@ -47,13 +47,11 @@ pub fn build_target_selection_menu(action_title: &str) -> Menu {
     let mut builder = Menu::builder(format!("Модерация: Выбор цели ({action_title})"));
     builder = builder.style(MenuStyle::brackets());
 
-    for i in 1..=32 {
-        let p = Player::new(i);
-        if p.is_valid() {
-            let name = p.name().unwrap_or_else(|| format!("Player #{i}"));
-            let item_label = format!("{name} (#{i})");
-            builder = builder.item(MenuItem::new(item_label, ACTION_TARGET_BASE + i as u32));
-        }
+    for p in Players::all() {
+        let i = p.index();
+        let name = p.name().unwrap_or_else(|| format!("Player #{i}"));
+        let item_label = format!("{name} (#{i})");
+        builder = builder.item(MenuItem::target(item_label, p.slot(), "moderation:target"));
     }
 
     builder.build()

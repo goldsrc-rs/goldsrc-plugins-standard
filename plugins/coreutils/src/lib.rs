@@ -62,9 +62,9 @@ impl Coreutils {
         let raw_args = parse_shell_args(&args);
         match applets::run_grep(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(output);
+                Server::console().print(output);
             }
-            Err(err) => Player::new(0).print_console(format!("grep: {err}\n")),
+            Err(err) => Server::console().print(format!("grep: {err}\n")),
         }
     }
 
@@ -77,9 +77,9 @@ impl Coreutils {
         let raw_args = parse_shell_args(&args);
         match applets::run_cat(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(output);
+                Server::console().print(output);
             }
-            Err(err) => Player::new(0).print_console(format!("cat: {err}\n")),
+            Err(err) => Server::console().print(format!("cat: {err}\n")),
         }
     }
 
@@ -92,9 +92,9 @@ impl Coreutils {
         let raw_args = parse_shell_args(&args);
         match applets::run_head(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(output);
+                Server::console().print(output);
             }
-            Err(err) => Player::new(0).print_console(format!("head: {err}\n")),
+            Err(err) => Server::console().print(format!("head: {err}\n")),
         }
     }
 
@@ -107,9 +107,9 @@ impl Coreutils {
         let raw_args = parse_shell_args(&args);
         match applets::run_tail(&raw_args) {
             Ok(output) => {
-                Player::new(0).print_console(output);
+                Server::console().print(output);
             }
-            Err(err) => Player::new(0).print_console(format!("tail: {err}\n")),
+            Err(err) => Server::console().print(format!("tail: {err}\n")),
         }
     }
 
@@ -121,8 +121,8 @@ impl Coreutils {
     fn cmd_wc(args: String) {
         let raw_args = parse_shell_args(&args);
         match applets::run_wc(&raw_args) {
-            Ok(output) => Player::new(0).print_console(format!("{output}\n")),
-            Err(err) => Player::new(0).print_console(format!("wc: {err}\n")),
+            Ok(output) => Server::console().print(format!("{output}\n")),
+            Err(err) => Server::console().print(format!("wc: {err}\n")),
         }
     }
 
@@ -134,8 +134,8 @@ impl Coreutils {
     fn cmd_sha256sum(args: String) {
         let raw_args = parse_shell_args(&args);
         match applets::run_sha256sum(&raw_args) {
-            Ok(output) => Player::new(0).print_console(format!("{output}\n")),
-            Err(err) => Player::new(0).print_console(format!("sha256sum: {err}\n")),
+            Ok(output) => Server::console().print(format!("{output}\n")),
+            Err(err) => Server::console().print(format!("sha256sum: {err}\n")),
         }
     }
 
@@ -147,8 +147,118 @@ impl Coreutils {
     fn cmd_ls(args: String) {
         let raw_args = parse_shell_args(&args);
         match applets::run_ls(&raw_args) {
-            Ok(output) => Player::new(0).print_console(output),
-            Err(err) => Player::new(0).print_console(format!("ls: {err}\n")),
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("ls: {err}\n")),
+        }
+    }
+
+    #[command(name = "clear", description = "Clear console screen", usage = "clear")]
+    fn cmd_clear(_args: String) {
+        match applets::run_clear() {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("clear: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "find",
+        description = "Search for files in a directory hierarchy",
+        usage = "find [dir] [-name <pattern>]"
+    )]
+    fn cmd_find(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_find(&raw_args) {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("find: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "diff",
+        description = "Compare files line by line",
+        usage = "diff <file1> <file2>"
+    )]
+    fn cmd_diff(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_diff(&raw_args) {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("diff: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "sort",
+        description = "Sort lines of text files",
+        usage = "sort [-r] [-n] [file]"
+    )]
+    fn cmd_sort(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_sort(&raw_args, None) {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("sort: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "uniq",
+        description = "Report or omit repeated lines",
+        usage = "uniq [-c] [-d] [file]"
+    )]
+    fn cmd_uniq(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_uniq(&raw_args, None) {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("uniq: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "du",
+        description = "Estimate file space usage",
+        usage = "du [-h] [-s] [dir]"
+    )]
+    fn cmd_du(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_du(&raw_args) {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("du: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "df",
+        description = "Report file system disk space usage",
+        usage = "df [-h]"
+    )]
+    fn cmd_df(args: String) {
+        let raw_args = parse_shell_args(&args);
+        match applets::run_df(&raw_args) {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("df: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "uptime",
+        description = "Tell how long the server host has been running",
+        usage = "uptime"
+    )]
+    fn cmd_uptime(_args: String) {
+        match applets::run_uptime() {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("uptime: {err}\n")),
+        }
+    }
+
+    #[command(
+        name = "date",
+        description = "Print current server time information",
+        usage = "date"
+    )]
+    fn cmd_date(_args: String) {
+        match applets::run_date() {
+            Ok(output) => Server::console().print(output),
+            Err(err) => Server::console().print(format!("date: {err}\n")),
         }
     }
 }

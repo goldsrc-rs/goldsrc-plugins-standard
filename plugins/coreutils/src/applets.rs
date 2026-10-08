@@ -1,7 +1,4 @@
-//! Applet implementations for grep, cat, tail, head, wc, sha256.
-
 use crate::vfs::SafeVfs;
-use std::path::Path;
 
 /// POSIX-style grep runner.
 pub fn run_grep(args: &[String]) -> Result<String, String> {
@@ -47,15 +44,11 @@ pub fn run_grep(args: &[String]) -> Result<String, String> {
     let mut output = String::new();
 
     if recursive {
-        let root = if files.is_empty() {
-            Path::new(".")
-        } else {
-            Path::new(&files[0])
-        };
+        let root = if files.is_empty() { "." } else { &files[0] };
         let matched_paths = SafeVfs::find_files(root, include_pattern.as_deref());
 
         for path in matched_paths {
-            if let Ok(content) = std::fs::read_to_string(&path) {
+            if let Ok(content) = SafeVfs::read_to_string(&path) {
                 for (idx, line) in content.lines().enumerate() {
                     let hay = if ignore_case {
                         line.to_lowercase()
@@ -64,9 +57,9 @@ pub fn run_grep(args: &[String]) -> Result<String, String> {
                     };
                     if hay.contains(&search_query) {
                         if show_lines {
-                            output.push_str(&format!("{}:{}:{}\n", path.display(), idx + 1, line));
+                            output.push_str(&format!("{}:{}:{}\n", path, idx + 1, line));
                         } else {
-                            output.push_str(&format!("{}:{}\n", path.display(), line));
+                            output.push_str(&format!("{}:{}\n", path, line));
                         }
                     }
                 }
@@ -218,7 +211,7 @@ pub fn run_sha256sum(args: &[String]) -> Result<String, String> {
     Ok(format!("{}  {}", hash, file))
 }
 
-#[allow(clippy::chunks_exact_to_as_chunks)]
+#[allow(unknown_lints, clippy::chunks_exact_to_as_chunks)]
 fn simple_sha256(data: &[u8]) -> String {
     // Standard SHA-256 implementation
     let mut h: [u32; 8] = [
@@ -329,31 +322,19 @@ pub fn run_ls(args: &[String]) -> Result<String, String> {
     }
 
     let target_str = dir.unwrap_or(".");
-    let target_path = if target_str == "." {
-        crate::vfs::SafeVfs::resolve_path("configs").and_then(|p| p.parent().map(|p| p.to_path_buf())).unwrap_or_else(|| std::path::PathBuf::from("."))
-    } else {
-        crate::vfs::SafeVfs::resolve_path(target_str)
-            .ok_or_else(|| format!("Directory not found: {target_str}"))?
-    };
-
-    let entries = std::fs::read_dir(&target_path)
-        .map_err(|e| format!("Failed to read directory '{target_str}': {e}"))?;
+    let entries = SafeVfs::list_dir(target_str)?;
 
     let mut names = Vec::new();
-    for entry in entries.flatten() {
-        let name = entry.file_name().to_string_lossy().to_string();
-        if !show_all && name.starts_with('.') {
+    for entry in entries {
+        if !show_all && entry.name.starts_with('.') {
             continue;
         }
 
         if long_format {
-            let metadata = entry.metadata().ok();
-            let is_dir = metadata.as_ref().map(|m| m.is_dir()).unwrap_or(false);
-            let size = metadata.as_ref().map(|m| m.len()).unwrap_or(0);
-            let kind = if is_dir { "d" } else { "-" };
-            names.push(format!("{kind}rwxr-xr-x {:8} {}", size, name));
+            let kind = if entry.is_dir { "d" } else { "-" };
+            names.push(format!("{kind}rwxr-xr-x {:8} {}", entry.size, entry.name));
         } else {
-            names.push(name);
+            names.push(entry.name);
         }
     }
 
@@ -361,4 +342,288 @@ pub fn run_ls(args: &[String]) -> Result<String, String> {
     let mut out = names.join(if long_format { "\n" } else { "  " });
     out.push('\n');
     Ok(out)
+}
+
+/// POSIX clear runner (ANSI escape sequence to clear console and home cursor).
+pub fn run_clear() -> Result<String, String> {
+    Ok("\x1b[2J\x1b[H\x1b[3J".to_string())
+}
+
+/// POSIX find runner: find [dir] [-name <pattern>]
+pub fn run_find(args: &[String]) -> Result<String, String> {
+    let mut dir = ".";
+    let mut pattern: Option<&str> = None;
+
+    let mut i = 0;
+    while i < args.len() {
+        if args[i] == "-name" && i + 1 < args.len() {
+            pattern = Some(&args[i + 1]);
+            i += 2;
+        } else if !args[i].starts_with('-') {
+            dir = &args[i];
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+
+    let matches = SafeVfs::find_files(dir, pattern);
+    if matches.is_empty() {
+        Ok(String::new())
+    } else {
+        Ok(format!("{}\n", matches.join("\n")))
+    }
+}
+
+/// POSIX diff runner: diff <file1> <file2>
+pub fn run_diff(args: &[String]) -> Result<String, String> {
+    let files: Vec<&String> = args.iter().filter(|a| !a.starts_with('-')).collect();
+    if files.len() < 2 {
+        return Err("Usage: diff <file1> <file2>".to_string());
+    }
+
+    let file1 = files[0];
+    let file2 = files[1];
+    let text1 = SafeVfs::read_to_string(file1)?;
+    let text2 = SafeVfs::read_to_string(file2)?;
+
+    let lines1: Vec<&str> = text1.lines().collect();
+    let lines2: Vec<&str> = text2.lines().collect();
+
+    let mut output = String::new();
+    let max_lines = lines1.len().max(lines2.len());
+
+    for idx in 0..max_lines {
+        match (lines1.get(idx), lines2.get(idx)) {
+            (Some(&l1), Some(&l2)) if l1 != l2 => {
+                output.push_str(&format!(
+                    "{}c{}\n< {}\n---\n> {}\n",
+                    idx + 1,
+                    idx + 1,
+                    l1,
+                    l2
+                ));
+            }
+            (Some(&l1), None) => {
+                output.push_str(&format!("{}d{}\n< {}\n", idx + 1, lines2.len(), l1));
+            }
+            (None, Some(&l2)) => {
+                output.push_str(&format!("{}a{}\n> {}\n", lines1.len(), idx + 1, l2));
+            }
+            _ => {}
+        }
+    }
+
+    Ok(output)
+}
+
+/// POSIX sort runner: sort [-r] [-n] [file]
+pub fn run_sort(args: &[String], stdin: Option<&str>) -> Result<String, String> {
+    let mut reverse = false;
+    let mut numeric = false;
+    let mut file: Option<&str> = None;
+
+    for arg in args {
+        if arg == "-r" {
+            reverse = true;
+        } else if arg == "-n" {
+            numeric = true;
+        } else if !arg.starts_with('-') && file.is_none() {
+            file = Some(arg);
+        }
+    }
+
+    let content = if let Some(f) = file {
+        SafeVfs::read_to_string(f)?
+    } else if let Some(input) = stdin {
+        input.to_string()
+    } else {
+        return Err("Usage: sort [-r] [-n] [file]".to_string());
+    };
+
+    let mut lines: Vec<String> = content.lines().map(|s| s.to_string()).collect();
+
+    if numeric {
+        lines.sort_by(|a, b| {
+            let num_a = a
+                .split_whitespace()
+                .next()
+                .and_then(|s| s.parse::<f64>().ok())
+                .unwrap_or(0.0);
+            let num_b = b
+                .split_whitespace()
+                .next()
+                .and_then(|s| s.parse::<f64>().ok())
+                .unwrap_or(0.0);
+            num_a
+                .partial_cmp(&num_b)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+    } else {
+        lines.sort();
+    }
+
+    if reverse {
+        lines.reverse();
+    }
+
+    Ok(if lines.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", lines.join("\n"))
+    })
+}
+
+/// POSIX uniq runner: uniq [-c] [-d] [file]
+pub fn run_uniq(args: &[String], stdin: Option<&str>) -> Result<String, String> {
+    let mut count_mode = false;
+    let mut duplicates_only = false;
+    let mut file: Option<&str> = None;
+
+    for arg in args {
+        if arg == "-c" {
+            count_mode = true;
+        } else if arg == "-d" {
+            duplicates_only = true;
+        } else if !arg.starts_with('-') && file.is_none() {
+            file = Some(arg);
+        }
+    }
+
+    let content = if let Some(f) = file {
+        SafeVfs::read_to_string(f)?
+    } else if let Some(input) = stdin {
+        input.to_string()
+    } else {
+        return Err("Usage: uniq [-c] [-d] [file]".to_string());
+    };
+
+    let lines: Vec<&str> = content.lines().collect();
+    let mut output = String::new();
+
+    let mut i = 0;
+    while i < lines.len() {
+        let current = lines[i];
+        let mut count = 1;
+        while i + 1 < lines.len() && lines[i + 1] == current {
+            count += 1;
+            i += 1;
+        }
+
+        if !duplicates_only || count > 1 {
+            if count_mode {
+                output.push_str(&format!("{:7} {}\n", count, current));
+            } else {
+                output.push_str(&format!("{}\n", current));
+            }
+        }
+        i += 1;
+    }
+
+    Ok(output)
+}
+
+/// Format bytes into human-readable representation.
+fn format_human_size(bytes: u64) -> String {
+    const KB: u64 = 1024;
+    const MB: u64 = 1024 * KB;
+    const GB: u64 = 1024 * MB;
+
+    if bytes >= GB {
+        format!("{:.1}G", bytes as f64 / GB as f64)
+    } else if bytes >= MB {
+        format!("{:.1}M", bytes as f64 / MB as f64)
+    } else if bytes >= KB {
+        format!("{:.1}K", bytes as f64 / KB as f64)
+    } else {
+        format!("{bytes}B")
+    }
+}
+
+/// POSIX du runner: du [-h] [-s] [dir]
+pub fn run_du(args: &[String]) -> Result<String, String> {
+    let mut human = false;
+    let mut summary = false;
+    let mut target_dir = ".";
+
+    for arg in args {
+        if arg == "-h" {
+            human = true;
+        } else if arg == "-s" {
+            summary = true;
+        } else if !arg.starts_with('-') {
+            target_dir = arg;
+        }
+    }
+
+    let (total, items) = SafeVfs::du_calc(target_dir);
+    let mut output = String::new();
+
+    if !summary {
+        for (path, size) in items {
+            let sz_str = if human {
+                format_human_size(size)
+            } else {
+                format!("{}", size.div_ceil(1024))
+            };
+            output.push_str(&format!("{:<8}\t{}\n", sz_str, path));
+        }
+    }
+
+    let total_str = if human {
+        format_human_size(total)
+    } else {
+        format!("{}", total.div_ceil(1024))
+    };
+    output.push_str(&format!("{:<8}\t{}\n", total_str, target_dir));
+    Ok(output)
+}
+
+/// POSIX df runner: df [-h]
+pub fn run_df(args: &[String]) -> Result<String, String> {
+    let human = args.iter().any(|a| a == "-h");
+    let (total_used, _) = SafeVfs::du_calc(".");
+
+    let mut output = String::new();
+    output.push_str(&format!(
+        "{:<16} {:<12} {:<12} {:<6} {}\n",
+        "Filesystem", "Size", "Used", "Use%", "Mounted on"
+    ));
+
+    let used_str = if human {
+        format_human_size(total_used)
+    } else {
+        format!("{}K", total_used.div_ceil(1024))
+    };
+    output.push_str(&format!(
+        "{:<16} {:<12} {:<12} {:<6} {}\n",
+        "goldsrc-vfs", "Sandbox", used_str, "-", "/addons/goldsrc"
+    ));
+    Ok(output)
+}
+
+/// POSIX uptime runner: uptime
+pub fn run_uptime() -> Result<String, String> {
+    let secs = goldsrc_api::bindings::goldsrc::engine::api::host_time();
+    let total_secs = secs as u64;
+    let days = total_secs / 86400;
+    let hours = (total_secs % 86400) / 3600;
+    let mins = (total_secs % 3600) / 60;
+    let rem_secs = total_secs % 60;
+
+    let mut output = String::from("up ");
+    if days > 0 {
+        output.push_str(&format!("{days} days, "));
+    }
+    output.push_str(&format!(
+        "{:02}:{:02}:{:02} (monotonic uptime: {:.2}s)\n",
+        hours, mins, rem_secs, secs
+    ));
+    Ok(output)
+}
+
+/// POSIX date runner: date
+pub fn run_date() -> Result<String, String> {
+    let secs = goldsrc_api::bindings::goldsrc::engine::api::host_time();
+    Ok(format!("Host Server Uptime: {:.3}s\n", secs))
 }
