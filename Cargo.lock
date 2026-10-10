@@ -308,11 +308,11 @@ dependencies = [
 
 [[package]]
 name = "stitch-core"
-version = "0.2.0"
+version = "0.3.0"
 
 [[package]]
 name = "stitch-macros"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -525,7 +525,7 @@ checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
 
 [[patch.unused]]
 name = "stitch-rs"
-version = "0.2.0"
+version = "0.3.0"
 
 [[patch.unused]]
 name = "goldsrc-sys"
