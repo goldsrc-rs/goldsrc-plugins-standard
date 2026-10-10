@@ -19,9 +19,9 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/goldsrc-rs/goldsrc-plugins-standard"
 
 [workspace.dependencies]
-goldsrc = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "main" }
-goldsrc-api = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "main" }
-goldsrc-macros = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "main" }
+goldsrc = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "dev" }
+goldsrc-api = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "dev" }
+goldsrc-macros = { git = "https://github.com/goldsrc-rs/goldsrc-sdk.git", branch = "dev" }
 
 wit-bindgen = "0.62.0"
 serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
@@ -43,15 +43,5 @@ codegen-units = 16
 panic = "abort"
 overflow-checks = true
 
-[patch."https://github.com/goldsrc-rs/goldsrc-sdk.git"]
-goldsrc = { path = "../goldsrc-sdk/goldsrc" }
-goldsrc-api = { path = "../goldsrc-sdk/goldsrc-api" }
-goldsrc-macros = { path = "../goldsrc-sdk/goldsrc-macros" }
-goldsrc-sys = { path = "../goldsrc-sdk/goldsrc-sys" }
-goldsrc-spi = { path = "../goldsrc-sdk/goldsrc-spi" }
 
-[patch."https://github.com/ulquiorracode/stitch-rs.git"]
-stitch-rs = { path = "../../stitch-rs" }
-stitch-core = { path = "../../stitch-rs/crates/stitch-core" }
-stitch-macros = { path = "../../stitch-rs/crates/stitch-macros" }
 
