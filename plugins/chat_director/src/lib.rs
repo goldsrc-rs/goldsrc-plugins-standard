@@ -12,10 +12,79 @@ use antiflood::AntifloodService;
 use config::ChatDirectorConfig;
 #[allow(unused_imports)]
 use goldsrc::api::bindings::goldsrc::engine::api as host_api;
+use goldsrc::api::pipeline::FlowControl;
+use goldsrc::chat::{ChatLayer, ChatMessage, register_chat_layer};
 use goldsrc::prelude::*;
 use goldsrc_api::timer::host_time;
 use rotator::BroadcastRotator;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
+
+/// Strongly-typed SMA layer for Chat Director (Antiflood & Staff Chat routing).
+#[derive(Default)]
+pub struct ChatDirectorLayer;
+
+impl ChatLayer for ChatDirectorLayer {
+    fn on_enter(&self, msg: &mut ChatMessage) -> FlowControl<(), (), ()> {
+        let sender = msg.sender.index();
+        let now = host_time();
+
+        // Antiflood rate limit verification
+        let flood_interval = if let Ok(lock) = CONFIG.read() {
+            lock.as_ref().map(|c| c.flood_interval).unwrap_or(0.75)
+        } else {
+            0.75
+        };
+
+        if let Ok(mut lock) = ANTIFLOOD.write()
+            && let Some(service) = lock.as_mut()
+            && let Err(wait_secs) = service.check_and_update(sender, now, flood_interval)
+        {
+            msg.block();
+            let warn_msg = tr!(
+                "chat_director",
+                &msg.sender,
+                "flood_warning",
+                wait = format!("{wait_secs:.1}")
+            );
+            msg.sender.print_notify(&warn_msg);
+            return FlowControl::Halt(());
+        }
+
+        // Staff channel interception: say_team @ <text> or say @ <text>
+        let is_staff_call = msg.raw_text.trim().starts_with('@');
+        if is_staff_call {
+            let staff_content = msg
+                .raw_text
+                .trim()
+                .trim_start_matches('@')
+                .trim()
+                .to_string();
+            let sender_name = msg
+                .sender
+                .name()
+                .unwrap_or_else(|| format!("Player #{sender}"));
+            let formatted_staff_msg = format!("(STAFF CALL) {sender_name}: {staff_content}");
+
+            msg.block(); // Prevent broadcast to regular public chat
+
+            log_info!("[Staff Chat] {}", formatted_staff_msg);
+
+            // Dispatch to online staff members possessing admin:chat capability
+            for p in Players::all() {
+                if p.has_capability(caps::CHAT_STAFF) || p.has_capability("moderation:inspect") {
+                    p.print_chat(&formatted_staff_msg);
+                }
+            }
+            msg.sender
+                .print_chat(format!("(К ПЕРСОНАЛУ) {staff_content}"));
+            return FlowControl::Halt(());
+        }
+
+        FlowControl::Proceed(())
+    }
+
+    fn on_exit(&self, _msg: &mut ChatMessage, _outcome: &mut Result<(), ()>) {}
+}
 
 static CONFIG: RwLock<Option<ChatDirectorConfig>> = RwLock::new(None);
 static ANTIFLOOD: RwLock<Option<AntifloodService>> = RwLock::new(None);
@@ -65,66 +134,8 @@ impl ChatDirector {
             *lock = Some(BroadcastRotator::new());
         }
 
-        // 4. Register chat middleware for Antiflood and say_team @ staff routing
-        goldsrc::chat::register_chat_middleware(|msg| {
-            let sender = msg.sender.index();
-            let now = host_time();
-
-            // Antiflood rate limit verification
-            let flood_interval = if let Ok(lock) = CONFIG.read() {
-                lock.as_ref().map(|c| c.flood_interval).unwrap_or(0.75)
-            } else {
-                0.75
-            };
-
-            if let Ok(mut lock) = ANTIFLOOD.write()
-                && let Some(service) = lock.as_mut()
-                && let Err(wait_secs) = service.check_and_update(sender, now, flood_interval)
-            {
-                msg.block();
-                let warn_msg = tr!(
-                    "chat_director",
-                    &msg.sender,
-                    "flood_warning",
-                    wait = format!("{wait_secs:.1}")
-                );
-                msg.sender.print_notify(&warn_msg);
-                return false;
-            }
-
-            // Staff channel interception: say_team @ <text> or say @ <text>
-            let is_staff_call = msg.raw_text.trim().starts_with('@');
-            if is_staff_call {
-                let staff_content = msg
-                    .raw_text
-                    .trim()
-                    .trim_start_matches('@')
-                    .trim()
-                    .to_string();
-                let sender_name = msg
-                    .sender
-                    .name()
-                    .unwrap_or_else(|| format!("Player #{sender}"));
-                let formatted_staff_msg = format!("(STAFF CALL) {sender_name}: {staff_content}");
-
-                msg.block(); // Prevent broadcast to regular public chat
-
-                log_info!("[Staff Chat] {}", formatted_staff_msg);
-
-                // Dispatch to online staff members possessing admin:chat capability
-                for p in Players::all() {
-                    if p.has_capability(caps::CHAT_STAFF) || p.has_capability("moderation:inspect")
-                    {
-                        p.print_chat(&formatted_staff_msg);
-                    }
-                }
-                msg.sender
-                    .print_chat(format!("(К ПЕРСОНАЛУ) {staff_content}"));
-                return false;
-            }
-
-            true
-        });
+        // 4. Register SMA chat middleware layer for Antiflood and say_team @ staff routing
+        register_chat_layer(Arc::new(ChatDirectorLayer));
 
         log_info!("[Chat Director] Antiflood and staff channel filters registered successfully.");
     }
