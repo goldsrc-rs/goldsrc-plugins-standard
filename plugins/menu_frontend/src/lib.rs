@@ -26,7 +26,7 @@ pub struct MenuFrontend;
     name = "menu_frontend",
     role = "ui",
     bundle = "infra",
-    version = "0.19.0",
+    version = "0.20.0",
     author = "GoldSrc.rs Team",
     description = "Universal declarative menu renderer, session tracker, and cross-plugin registry",
     url = "https://github.com/goldsrc-rs/goldsrc-rs"
@@ -34,7 +34,7 @@ pub struct MenuFrontend;
 impl MenuFrontend {
     #[on_load]
     fn init() {
-        log_info!("[Menu Frontend] Initializing universal menu orchestrator (v0.19.0)...");
+        log_debug!("[Menu Frontend] Initializing universal menu orchestrator (v0.19.0)...");
 
         // 1. Initialize configuration
         if let Ok(mut lock) = CONFIG.write() {

@@ -41,7 +41,7 @@ pub mod caps {
     name = "moderation",
     role = "coordinator",
     bundle = "staff",
-    version = "0.19.0",
+    version = "0.20.0",
     author = "GoldSrc.rs Team",
     description = "Canonical GoldSrc disciplinary sanctions, player moderation, and inspection suite",
     url = "https://github.com/goldsrc-rs/goldsrc-rs"
@@ -49,7 +49,7 @@ pub mod caps {
 impl Moderation {
     #[on_load]
     fn init() {
-        log_info!("[Moderation] Initializing canonical moderation suite (v0.19.0)...");
+        log_debug!("[Moderation] Initializing canonical moderation suite (v0.19.0)...");
 
         // 1. Register security capabilities with PBAC engine
         Auth::register_capability(caps::KICK, "Allows disconnecting players from the server");

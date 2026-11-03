@@ -50,7 +50,7 @@ pub struct Coreutils;
 impl Coreutils {
     #[on_load]
     fn init() {
-        log_info!("[Coreutils] Initializing server utilities suite (v0.20.0)...");
+        log_debug!("[Coreutils] Initializing server utilities suite (v0.20.0)...");
     }
 
     #[command(

@@ -101,7 +101,7 @@ pub mod caps {
     name = "chat_director",
     role = "service",
     bundle = "gameplay",
-    version = "0.19.0",
+    version = "0.20.0",
     author = "GoldSrc.rs Team",
     description = "Antiflood protection, private staff communications, and rotating HUD broadcasts",
     url = "https://github.com/goldsrc-rs/goldsrc-rs"
@@ -109,7 +109,7 @@ pub mod caps {
 impl ChatDirector {
     #[on_load]
     fn init() {
-        log_info!("[Chat Director] Initializing communication service (v0.19.0)...");
+        log_debug!("[Chat Director] Initializing communication service (v0.19.0)...");
 
         // 1. Register capabilities
         Auth::register_capability(

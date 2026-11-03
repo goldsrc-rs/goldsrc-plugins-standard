@@ -36,7 +36,7 @@ pub mod caps {
     name = "map_manager",
     role = "feature",
     bundle = "gameplay",
-    version = "0.19.0",
+    version = "0.20.0",
     author = "GoldSrc.rs Team",
     description = "Map timelimit tracker, public nominations, interactive voting, and nextmap rotation",
     url = "https://github.com/goldsrc-rs/goldsrc-rs"
@@ -44,7 +44,7 @@ pub mod caps {
 impl MapManager {
     #[on_load]
     fn init() {
-        log_info!("[Map Manager] Initializing map rotation and voting suite (v0.19.0)...");
+        log_debug!("[Map Manager] Initializing map rotation and voting suite (v0.19.0)...");
 
         // 1. Register capabilities
         Auth::register_capability(

@@ -32,7 +32,7 @@ pub mod caps {
     name = "administration",
     role = "coordinator",
     bundle = "staff",
-    version = "0.19.0",
+    version = "0.20.0",
     author = "GoldSrc.rs Team",
     description = "Canonical GoldSrc technical server, match, staff RBAC, and engine administration suite",
     url = "https://github.com/goldsrc-rs/goldsrc-rs"
@@ -40,9 +40,7 @@ pub mod caps {
 impl Administration {
     #[on_load]
     fn init() {
-        log_info!(
-            "[Administration] Initializing canonical administration coordinator (v0.19.0)..."
-        );
+        log_debug!("[Administration] Initializing canonical administration coordinator (v0.19.0)...");
 
         // 1. Register capabilities
         Auth::register_capability(

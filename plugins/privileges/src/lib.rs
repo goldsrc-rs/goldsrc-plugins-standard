@@ -34,7 +34,7 @@ pub mod caps {
     name = "privileges",
     role = "feature",
     bundle = "gameplay",
-    version = "0.19.0",
+    version = "0.20.0",
     author = "GoldSrc.rs Team",
     description = "Canonical GoldSrc VIP privileges, equipment perks, prefixes, and slot reservation",
     url = "https://github.com/goldsrc-rs/goldsrc-rs"
@@ -42,7 +42,7 @@ pub mod caps {
 impl Privileges {
     #[on_load]
     fn init() {
-        log_info!("[Privileges] Initializing canonical privileges suite (v0.19.0)...");
+        log_debug!("[Privileges] Initializing canonical privileges suite (v0.19.0)...");
 
         // 1. Register capabilities
         Auth::register_capability(caps::ACCESS, "Grants access to general VIP features");
